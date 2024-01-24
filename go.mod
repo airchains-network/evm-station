@@ -1,4 +1,4 @@
-module github.com/berachain/polaris/e2e/testapp
+module github.com/airchains-network/evm-station
 
 go 1.21
 
