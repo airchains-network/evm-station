@@ -22,6 +22,7 @@ package cmd
 
 import (
 	"errors"
+	testapp "github.com/airchains-network/evm-station/app"
 	"io"
 	"os"
 
@@ -33,8 +34,6 @@ import (
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 
 	evmconfig "github.com/berachain/polaris/cosmos/config"
-	testapp "github.com/berachain/polaris/e2e/testapp"
-
 	cmtcfg "github.com/cometbft/cometbft/config"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -139,7 +138,7 @@ func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
 }
 
-// genesisCommand builds genesis-related `polard genesis` command.
+// genesisCommand builds genesis-related `evmstationd genesis` command.
 // Users may provide application specific commands as a parameter.
 func genesisCommand(
 	txConfig client.TxConfig, basicManager module.BasicManager, cmds ...*cobra.Command,
@@ -207,7 +206,7 @@ func newApp(
 ) servertypes.Application {
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
-	return testapp.NewPolarisApp(
+	return testapp.NewEvmStationApp(
 		logger, db, traceStore, true,
 		"",
 		appOpts,
@@ -244,20 +243,20 @@ func appExport(
 
 	var testApp *testapp.EvmStationApp
 	if height != -1 {
-		testApp = testapp.NewPolarisApp(logger, db, traceStore, false, "", appOpts)
+		testApp = testapp.NewEvmStationApp(logger, db, traceStore, false, "", appOpts)
 
 		if err := testApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		testApp = testapp.NewPolarisApp(logger, db, traceStore, true, "", appOpts)
+		testApp = testapp.NewEvmStationApp(logger, db, traceStore, true, "", appOpts)
 	}
 
 	return testApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }
 
 var tempDir = func() string {
-	dir, err := os.MkdirTemp("", ".polard")
+	dir, err := os.MkdirTemp("", ".evmstationd")
 	if err != nil {
 		dir = testapp.DefaultNodeHome
 	}

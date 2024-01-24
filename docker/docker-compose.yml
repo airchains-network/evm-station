@@ -22,7 +22,7 @@ version: "3.3"
 
 services:
   node0:
-    container_name: polard-node0
+    container_name: evmstationd-node0
     image: "polard/seed:v0.0.0"
     ports:
       - "26656-26658:26656-26658"
@@ -40,7 +40,7 @@ services:
         ipv4_address: 192.168.10.10
 
   node1:
-    container_name: polard-node1
+    container_name: evmstationd-node1
     image: "polard/seed:v0.0.0"
     ports:
       - "26659-26661:26656-26658"
@@ -58,7 +58,7 @@ services:
         ipv4_address: 192.168.10.11
 
   node2:
-    container_name: polard-node2
+    container_name: evmstationd-node2
     image: "polard/seed:v0.0.0"
     ports:
       - "26662-26664:26656-26658"
@@ -76,7 +76,7 @@ services:
         ipv4_address: 192.168.10.12
 
   node3:
-    container_name: polard-node3
+    container_name: evmstationd-node3
     image: "polard/seed:v0.0.0"
     ports:
       - "26665-26667:26656-26658"

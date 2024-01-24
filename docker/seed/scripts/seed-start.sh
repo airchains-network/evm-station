@@ -25,4 +25,4 @@ if [ -z "$LOGLEVEL" ]; then
     LOGLEVEL="info"
 fi
 
-polard start --log_level $LOGLEVEL --minimum-gas-prices=0.0001abera --api.enable --home "$HOMEDIR"
+evmstationd start --log_level $LOGLEVEL --minimum-gas-prices=0.0001abera --api.enable --home "$HOMEDIR"

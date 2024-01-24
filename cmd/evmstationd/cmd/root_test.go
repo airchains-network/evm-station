@@ -22,11 +22,10 @@ package cmd_test
 
 import (
 	"fmt"
+	testapp "github.com/airchains-network/evm-station/app"
+	"github.com/airchains-network/evm-station/cmd/evmstationd/cmd"
 	"os"
 	"testing"
-
-	testapp "github.com/berachain/polaris/e2e/testapp"
-	"github.com/berachain/polaris/e2e/testapp/polard/cmd"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
@@ -38,7 +37,7 @@ import (
 
 func TestCmd(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "e2e/testapp/polard/cmd")
+	RunSpecs(t, "e2e/testapp/evmstationd/cmd")
 }
 
 var _ = Describe("Init command", func() {

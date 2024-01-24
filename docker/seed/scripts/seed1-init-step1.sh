@@ -41,8 +41,8 @@ GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 
 
-polard init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR"
+evmstationd init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR"
 
-polard config set client keyring-backend $KEYRING --home "$HOMEDIR"
+evmstationd config set client keyring-backend $KEYRING --home "$HOMEDIR"
 
-polard keys add $KEY --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
+evmstationd keys add $KEY --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"

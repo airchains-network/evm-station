@@ -18,9 +18,10 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package stationapp
+package app
 
 import (
+	"github.com/airchains-network/evm-station/app/params"
 	"io"
 	"os"
 	"path/filepath"
@@ -71,7 +72,7 @@ func init() {
 		panic(err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, ".polard")
+	DefaultNodeHome = filepath.Join(userHomeDir, ".evmstationd")
 }
 
 // DefaultNodeHome default home directories for the application daemon.
@@ -111,10 +112,10 @@ type EvmStationApp struct {
 	EVMKeeper *evmkeeper.Keeper
 }
 
-// NewPolarisApp returns a reference to an initialized EvmStationApp.
+// NewEvmStationApp returns a reference to an initialized EvmStationApp.
 //
 
-func NewPolarisApp(
+func NewEvmStationApp(
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
@@ -128,7 +129,7 @@ func NewPolarisApp(
 		appBuilder *runtime.AppBuilder
 		// merge the AppConfig and other configuration in one config
 		appConfig = depinject.Configs(
-			MakeAppConfig(bech32Prefix),
+			params.MakeAppConfig(bech32Prefix),
 			depinject.Provide(
 				signinglib.ProvideNoopGetSigners[*evmv1alpha1.WrappedEthereumTransaction],
 				signinglib.ProvideNoopGetSigners[*evmv1alpha1.WrappedPayloadEnvelope],

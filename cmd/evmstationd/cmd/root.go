@@ -21,6 +21,8 @@
 package cmd
 
 import (
+	"github.com/airchains-network/evm-station/app"
+	"github.com/airchains-network/evm-station/app/params"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -36,8 +38,6 @@ import (
 	ethcryptocodec "github.com/berachain/polaris/cosmos/crypto/codec"
 	polarkeyring "github.com/berachain/polaris/cosmos/crypto/keyring"
 	signinglib "github.com/berachain/polaris/cosmos/lib/signing"
-	testapp "github.com/berachain/polaris/e2e/testapp"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -63,10 +63,10 @@ func NewRootCmd() *cobra.Command {
 
 	if err := depinject.Inject(
 		depinject.Configs(
-			testapp.MakeAppConfig(""),
+			params.MakeAppConfig(""),
 			depinject.Supply(
-				testapp.PolarisConfigFn(evmconfig.DefaultConfig()),
-				testapp.QueryContextFn((&testapp.EvmStationApp{})),
+				app.PolarisConfigFn(evmconfig.DefaultConfig()),
+				app.QueryContextFn((&app.EvmStationApp{})),
 				log.NewNopLogger(),
 				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
 			),
@@ -88,8 +88,8 @@ func NewRootCmd() *cobra.Command {
 	ethcryptocodec.RegisterInterfaces(clientCtx.InterfaceRegistry)
 
 	rootCmd := &cobra.Command{
-		Use:           "polard",
-		Short:         "node daemon and CLI for interacting with a polaris node",
+		Use:           "evmstationd",
+		Short:         "node daemon and CLI for interacting with a evm station node",
 		SilenceErrors: true,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			var err error
@@ -143,7 +143,7 @@ func ProvideClientContext(
 		WithLegacyAmino(legacyAmino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
-		WithHomeDir(testapp.DefaultNodeHome).
+		WithHomeDir(app.DefaultNodeHome).
 		WithKeyringOptions(polarkeyring.OnlyEthSecp256k1Option()).
 		WithViper("") // In simapp, we don't use any prefix for env variables.
 

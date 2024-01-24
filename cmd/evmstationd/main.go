@@ -21,19 +21,19 @@
 package main
 
 import (
+	testapp "github.com/airchains-network/evm-station/app"
+	"github.com/airchains-network/evm-station/cmd/evmstationd/cmd"
+	"github.com/berachain/polaris/cosmos/config"
 	"os"
 
 	"cosmossdk.io/log"
-
-	"github.com/berachain/polaris/cosmos/config"
-	testapp "github.com/berachain/polaris/e2e/testapp"
-	"github.com/berachain/polaris/e2e/testapp/polard/cmd"
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 )
 
 func main() {
 	config.SetupCosmosConfig()
+
 	rootCmd := cmd.NewRootCmd()
 	if err := svrcmd.Execute(rootCmd, "", testapp.DefaultNodeHome); err != nil {
 		log.NewLogger(rootCmd.OutOrStderr()).Error("failure when running app", "err", err)

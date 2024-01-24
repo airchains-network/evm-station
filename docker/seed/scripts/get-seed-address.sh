@@ -23,6 +23,6 @@ if [ -z "$HOMEDIR" ]; then
 fi
 
 ip=$1
-node_id=$(polard comet show-node-id --home "$HOMEDIR")
+node_id=$(evmstationd comet show-node-id --home "$HOMEDIR")
 
 echo "$node_id@$ip:26656"

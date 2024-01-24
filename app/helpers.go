@@ -18,7 +18,7 @@
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND
 // TITLE.
 
-package stationapp
+package app
 
 import (
 	evmconfig "github.com/berachain/polaris/cosmos/config"

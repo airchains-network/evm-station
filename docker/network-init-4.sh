@@ -82,12 +82,12 @@ docker cp ./temp/genesis.json $CONTAINER2:$HOMEDIR/config/genesis.json
 docker cp ./temp/genesis.json $CONTAINER3:$HOMEDIR/config/genesis.json
 
 # start
-# docker exec -it $CONTAINER0 bash -c "$SCRIPTS/seed-start.sh"
-# docker exec -it $CONTAINER1 bash -c "$SCRIPTS/seed-start.sh"
-# docker exec -it $CONTAINER2 bash -c "$SCRIPTS/seed-start.sh"
-# docker exec -it $CONTAINER3 bash -c "$SCRIPTS/seed-start.sh"
+# docker exec -it $CONTAINER0 bash -c "$SCRIPTS/seed-local-start.sh"
+# docker exec -it $CONTAINER1 bash -c "$SCRIPTS/seed-local-start.sh"
+# docker exec -it $CONTAINER2 bash -c "$SCRIPTS/seed-local-start.sh"
+# docker exec -it $CONTAINER3 bash -c "$SCRIPTS/seed-local-start.sh"
 
-# docker exec -it polard-node0 bash -c "/scripts/seed-start.sh"
-# docker exec -it polard-node1 bash -c "/scripts/seed-start.sh"
-# docker exec -it polard-node2 bash -c "/scripts/seed-start.sh"
-# docker exec -it polard-node3 bash -c "/scripts/seed-start.sh"
+# docker exec -it evmstationd-node0 bash -c "/scripts/seed-local-start.sh"
+# docker exec -it evmstationd-node1 bash -c "/scripts/seed-local-start.sh"
+# docker exec -it evmstationd-node2 bash -c "/scripts/seed-local-start.sh"
+# docker exec -it evmstationd-node3 bash -c "/scripts/seed-local-start.sh"

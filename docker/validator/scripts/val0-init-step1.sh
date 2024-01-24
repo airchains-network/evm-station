@@ -25,9 +25,9 @@ KEYRING="test"
 KEYALGO="eth_secp256k1"
 HOMEDIR="/.polard"
 
-polard init $MONIKER1 -o --chain-id $CHAINID --home "$HOMEDIR"
+evmstationd init $MONIKER1 -o --chain-id $CHAINID --home "$HOMEDIR"
 
-polard config set client keyring-backend $KEYRING --home "$HOMEDIR"
+evmstationd config set client keyring-backend $KEYRING --home "$HOMEDIR"
 
-polard keys add $KEY1 --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
+evmstationd keys add $KEY1 --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
   
