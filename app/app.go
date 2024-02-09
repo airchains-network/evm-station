@@ -22,6 +22,13 @@ package app
 
 import (
 	"github.com/airchains-network/evm-station/app/params"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
+	icahostkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
+	ibcfeekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	"io"
 	"os"
 	"path/filepath"
@@ -62,6 +69,7 @@ import (
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 )
@@ -104,12 +112,28 @@ type EvmStationApp struct {
 	DistrKeeper           distrkeeper.Keeper
 	GovKeeper             *govkeeper.Keeper
 	CrisisKeeper          *crisiskeeper.Keeper
+	ParamsKeeper          paramskeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
 
 	// polaris required keeper
 	EVMKeeper *evmkeeper.Keeper
+
+	// IBC
+	// IBC
+	IBCKeeper           *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	CapabilityKeeper    *capabilitykeeper.Keeper
+	IBCFeeKeeper        ibcfeekeeper.Keeper
+	ICAControllerKeeper icacontrollerkeeper.Keeper
+	ICAHostKeeper       icahostkeeper.Keeper
+	TransferKeeper      ibctransferkeeper.Keeper
+
+	// Scoped IBC
+	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
+	ScopedIBCTransferKeeper   capabilitykeeper.ScopedKeeper
+	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
+	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
 }
 
 // NewEvmStationApp returns a reference to an initialized EvmStationApp.
@@ -143,6 +167,8 @@ func NewEvmStationApp(
 				PolarisConfigFn(evmconfig.MustReadConfigFromAppOpts(appOpts)),
 				PrecompilesToInject(app),
 				QueryContextFn(app),
+				app.GetIBCKeeper,
+				app.GetCapabilityScopedKeeper,
 				//
 				// AUTH
 				//
@@ -194,6 +220,8 @@ func NewEvmStationApp(
 	app.Polaris = polarruntime.New(app,
 		evmconfig.MustReadConfigFromAppOpts(appOpts), app.Logger(), app.EVMKeeper.Host, nil,
 	)
+	// Register legacy modules
+	app.registerIBCModules()
 
 	// Build cosmos ante handler for non-evm transactions.
 	cosmHandler, err := authante.NewAnteHandler(
@@ -297,4 +325,42 @@ func (app *EvmStationApp) Close() error {
 		return pl.Close()
 	}
 	return app.BaseApp.Close()
+}
+
+// GetSubspace returns a param subspace for a given module name.
+func (app *EvmStationApp) GetSubspace(moduleName string) paramstypes.Subspace {
+	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
+	return subspace
+}
+
+func (app *EvmStationApp) AppCodec() codec.Codec {
+	return app.appCodec
+}
+
+func (app *EvmStationApp) GetKey(storeKey string) *storetypes.KVStoreKey {
+	kvStoreKey, ok := app.UnsafeFindStoreKey(storeKey).(*storetypes.KVStoreKey)
+	if !ok {
+		return nil
+	}
+	return kvStoreKey
+}
+
+// GetMemKey returns the MemoryStoreKey for the provided store key.
+func (app *EvmStationApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
+	key, ok := app.UnsafeFindStoreKey(storeKey).(*storetypes.MemoryStoreKey)
+	if !ok {
+		return nil
+	}
+
+	return key
+}
+
+// GetIBCKeeper returns the IBC keeper.
+func (app *EvmStationApp) GetIBCKeeper() *ibckeeper.Keeper {
+	return app.IBCKeeper
+}
+
+// GetCapabilityScopedKeeper returns the capability scoped keeper.
+func (app *EvmStationApp) GetCapabilityScopedKeeper(moduleName string) capabilitykeeper.ScopedKeeper {
+	return app.CapabilityKeeper.ScopeToModule(moduleName)
 }

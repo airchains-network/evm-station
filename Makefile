@@ -56,7 +56,7 @@ test:
 
 # Clean build artifacts
 clean:
-	@echo "Cleaning up..."
+	@echo "Cleaning up old versions..."
 	$(GO_CLEAN)
 	rm -f $(BUILD_DIR)/$(BINARY_NAME)
 

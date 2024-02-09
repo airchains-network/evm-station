@@ -89,6 +89,10 @@ var (
 			Permissions: []string{authtypes.Burner}},
 		{Account: evmtypes.ModuleName,
 			Permissions: []string{authtypes.Minter, authtypes.Burner}},
+		// IBC
+		//{Account: ibctransfertypes.ModuleName, Permissions: []string{authtypes.Minter, authtypes.Burner}},
+		//{Account: ibchost.ModuleName},
+		//{Account: icatypes.ModuleName},
 	}
 
 	// blocked account addresses.

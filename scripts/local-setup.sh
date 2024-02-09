@@ -17,6 +17,11 @@ fi
 
 
 rm -rf ../.tmp
+rm -rf ../build
+cd ../
+make clean
+make build
+cd scripts
 declare -a KEYS
 KEYS[0]="dev0"
 KEYS[1]="dev1"
@@ -25,7 +30,7 @@ echo "KEYS: ${KEYS[@]}"
 
 CHAINID="nooob-69420"
 MONIKER="localtestnet"
-
+PersistentPeers="id1@ip1:port1,id2@ip2:port2" # Example format; replace with your actual peers
 KEYRING="test"
 KEYALGO="eth_secp256k1"
 LOGLEVEL="info"
@@ -74,6 +79,7 @@ set -e
 # Change the Default EVM Config
 
 sed -i "/\[polaris\.polar\.chain\]/!b;n;c chain-id = \"$EVMCHAINID\"" ../.tmp/polard/config/app.toml
+## Change exactly  persistent peers in config.toml
 
 
 
