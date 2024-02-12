@@ -208,6 +208,7 @@ func NewEvmStationApp(
 		&app.GovKeeper,
 		&app.CrisisKeeper,
 		&app.UpgradeKeeper,
+		&app.ParamsKeeper,
 		&app.EvidenceKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.EVMKeeper,

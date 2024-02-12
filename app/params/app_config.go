@@ -41,10 +41,17 @@ import (
 	"cosmossdk.io/depinject"
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	_ "github.com/cosmos/cosmos-sdk/x/params" // import for side-effects
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	ibcfeetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	evmmodulev1alpha1 "github.com/berachain/polaris/cosmos/api/polaris/evm/module/v1alpha1"
 	evmtypes "github.com/berachain/polaris/cosmos/x/evm/types"
 
+	paramsmodulev1 "cosmossdk.io/api/cosmos/params/module/v1"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -59,6 +66,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	_ "cosmossdk.io/x/evidence"                       // import for side-effects
 	_ "cosmossdk.io/x/upgrade"                        // import for side-effects
@@ -90,9 +98,9 @@ var (
 		{Account: evmtypes.ModuleName,
 			Permissions: []string{authtypes.Minter, authtypes.Burner}},
 		// IBC
-		//{Account: ibctransfertypes.ModuleName, Permissions: []string{authtypes.Minter, authtypes.Burner}},
-		//{Account: ibchost.ModuleName},
-		//{Account: icatypes.ModuleName},
+		{Account: ibctransfertypes.ModuleName, Permissions: []string{authtypes.Minter, authtypes.Burner}},
+		{Account: ibcfeetypes.ModuleName},
+		{Account: icatypes.ModuleName},
 	}
 
 	// blocked account addresses.
@@ -140,6 +148,13 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 						evidencetypes.ModuleName,
 						stakingtypes.ModuleName,
 						genutiltypes.ModuleName,
+
+						//IBC Modules
+						capabilitytypes.ModuleName,
+						ibcexported.ModuleName,
+						ibctransfertypes.ModuleName,
+						icatypes.ModuleName,
+						ibcfeetypes.ModuleName,
 					},
 					EndBlockers: []string{
 						evmtypes.ModuleName,
@@ -147,6 +162,12 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 						govtypes.ModuleName,
 						stakingtypes.ModuleName,
 						genutiltypes.ModuleName,
+						// ibc modules
+						ibcexported.ModuleName,
+						ibctransfertypes.ModuleName,
+						capabilitytypes.ModuleName,
+						icatypes.ModuleName,
+						ibcfeetypes.ModuleName,
 					},
 					OverrideStoreKeys: []*runtimev1alpha1.StoreKeyConfig{
 						{
@@ -173,6 +194,13 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 						vestingtypes.ModuleName,
 						consensustypes.ModuleName,
 						evmtypes.ModuleName,
+
+						// IBC modules
+						capabilitytypes.ModuleName,
+						ibcexported.ModuleName,
+						ibctransfertypes.ModuleName,
+						icatypes.ModuleName,
+						ibcfeetypes.ModuleName,
 					},
 					// When ExportGenesis is not specified, the export genesis module order
 					// is equal to the init genesis order
@@ -209,6 +237,10 @@ func MakeAppConfig(bech32Prefix string) depinject.Config {
 			{
 				Name:   slashingtypes.ModuleName,
 				Config: appconfig.WrapAny(&slashingmodulev1.Module{}),
+			},
+			{
+				Name:   paramstypes.ModuleName,
+				Config: appconfig.WrapAny(&paramsmodulev1.Module{}),
 			},
 			{
 				Name:   "tx",
