@@ -16,7 +16,7 @@ KEYRING="test"
 KEYALGO="eth_secp256k1"
 LOGLEVEL="info"
 # Set dedicated home directory for the ./build/bin/evmstationd instance
-HOMEDIR="./.tmp/polard"
+HOMEDIR="./.evmstation"
 # to trace evm
 #TRACE="--trace"
 TRACE=""
@@ -29,7 +29,7 @@ TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 
 
 # Check if ../.tmp directory exists
-if [ -d "../.tmp" ]; then
+if [ -d "./.evmstation" ]; then
     read -p "The evm station directory already exists. Do you want to continue? (y/n) " -n 1 -r
     echo    # Move to a new line
     if [[ $REPLY =~ ^[Nn]$ ]]
@@ -41,7 +41,7 @@ if [ -d "../.tmp" ]; then
 fi
 
 
-rm -rf ./.tmp
+rm -rf ./.evmstation
 rm -rf ./build
 make clean
 make build
@@ -78,7 +78,7 @@ set -e
 
 # Change the Default EVM Config
 
-sed -i "/\[polaris\.polar\.chain\]/!b;n;c chain-id = \"$EVMCHAINID\"" ../.tmp/polard/config/app.toml
+sed -i "/\[polaris\.polar\.chain\]/!b;n;c chain-id = \"$EVMCHAINID\"" ./.evmstation/config/app.toml
 ## Change exactly  persistent peers in config.toml
 
 
