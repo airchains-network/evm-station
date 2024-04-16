@@ -1,0 +1,35 @@
+ syntax = "proto3";
+package evmstation.evm.v1alpha1;
+
+import "cosmos/msg/v1/msg.proto";
+
+option go_package = "github.com/berachain/polaris/cosmos/x/evm/types";
+
+// Msg defines the x/evm Msg service.
+service MsgService {
+  option (cosmos.msg.v1.service) = true;
+
+  // EthTransaction defines a method submitting Ethereum transactions.
+  rpc EthTransaction(WrappedEthereumTransaction) returns (WrappedEthereumTransactionResult);
+
+  // ProcessPayloadEnvelope defines a method to process CL paylods.
+  rpc ProcessPayloadEnvelope(WrappedPayloadEnvelope) returns (WrappedPayloadEnvelopeResponse);
+}
+
+// WrappedEthereumTransaction encapsulates an Ethereum transaction as an SDK message.
+message WrappedEthereumTransaction {
+  // data is inner transaction data of the Ethereum transaction.
+  bytes data = 1;
+}
+
+// WrappedPayloadEnvelope encapsulates an Ethereum transaction as an SDK message.
+message WrappedPayloadEnvelope {
+  // data is inner transaction data of the Ethereum transaction.
+  bytes data = 1;
+}
+
+// WrappedPayloadEnvelopeResponse defines the block response.
+message WrappedPayloadEnvelopeResponse {}
+
+// WrappedEthereumTransactionResult defines the Msg/EthereumTx response type.
+message WrappedEthereumTransactionResult {}
