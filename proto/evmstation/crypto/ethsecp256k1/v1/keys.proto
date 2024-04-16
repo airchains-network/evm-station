@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package evmstation.crypto.ethsecp256k1.v1;
+
+option go_package = "github.com/berachain/polaris/cosmos/crypto/keys/ethsecp256k1";
+
+// `PubKey` defines a type alias for an `ecdsa.PublicKey` that implements
+// CometBFT's `PubKey` interface. It represents the 33-byte compressed public
+// key format.
+message PubKey {
+  // `key` is the public key in byte form.
+  bytes key = 1;
+}
+
+// `PrivKey` defines a type alias for a n`ecdsa.PrivateKey` that implements
+// CometBFT's `PrivateKey` interface.
+message PrivKey {
+  // `key` is the private key in byte form.
+  bytes key = 1;
+}
