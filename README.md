@@ -30,7 +30,6 @@ The project requires:
 ⚠️ **Warning:**
 This command will delete old data at `~/.evmstation` and `./build` directories. Also it will `delete keys of DA and Junction`. So make sure those wallets don't have balance, or export the keys before running this command.
 
-
 ### Init sequencer
 ```shell
   build/bin/evmstationd sequencer init --home "$HOMEDIR" --daRpc "mock-rpc" --daKey "mockKey" --daType "mock" --junctionRpc "http://0.0.0.0:26657" --junctionKeyName j-key
@@ -43,7 +42,6 @@ This command will delete old data at `~/.evmstation` and `./build` directories. 
   build/bin/evmstationd sequencer balance da  # currently not create or implimented
 ````
 
-warning: 
 ## Contributing
 Contributions are greatly appreciated. You can make contributions by creating issues, fixing bugs, or suggesting new features. Feel free to fork this repository and create pull requests to affect changes.
 
