@@ -23,12 +23,11 @@ package cmd
 import (
 	"errors"
 	testapp "github.com/airchains-network/evm-station/app"
-	"io"
-	"os"
-
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"io"
+	"os"
 
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
@@ -48,7 +47,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
@@ -111,8 +109,9 @@ func initRootCmd(
 	_ codec.Codec,
 	basicManager module.BasicManager,
 ) {
-	cfg := sdk.GetConfig()
-	cfg.Seal()
+
+	//cfg := sdk.GetConfig()
+	//cfg.Seal()
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(basicManager, testapp.DefaultNodeHome),
@@ -120,6 +119,7 @@ func initRootCmd(
 		confixcmd.ConfigCommand(),
 		pruning.Cmd(newApp, testapp.DefaultNodeHome),
 		snapshot.Cmd(newApp),
+		sequencerCommands(), // add sequencer commands
 	)
 
 	server.AddCommands(rootCmd, testapp.DefaultNodeHome, newApp, appExport, addModuleInitFlags)

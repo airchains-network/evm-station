@@ -16,7 +16,8 @@ KEYRING="test"
 KEYALGO="eth_secp256k1"
 LOGLEVEL="info"
 # Set dedicated home directory for the ./build/bin/evmstationd instance
-HOMEDIR="./.evmstation"
+#HOMEDIR="./.evmstation"
+HOMEDIR="$HOME/.evmstationd"
 # to trace evm
 #TRACE="--trace"
 TRACE=""
@@ -29,7 +30,7 @@ TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 
 
 # Check if ../.tmp directory exists
-if [ -d "./.evmstation" ]; then
+if [ -d "$HOMEDIR" ]; then
     read -p "The evm station directory already exists. Do you want to continue? (y/n) " -n 1 -r
     echo    # Move to a new line
     if [[ $REPLY =~ ^[Nn]$ ]]
@@ -41,7 +42,7 @@ if [ -d "./.evmstation" ]; then
 fi
 
 
-rm -rf ./.evmstation
+rm -rf "$HOMEDIR"
 rm -rf ./build
 make clean
 make build
@@ -55,14 +56,10 @@ EVMCHAINID="69420"
 
 # used to exit on first error (any non-zero exit code)
 set -e
-
-	
 	./build/bin/evmstationd init $MONIKER -o --chain-id $CHAINID --home "$HOMEDIR"
-
 	# Set client config
-	./build/bin/evmstationd config set client keyring-backend $KEYRING --home "$HOMEDIR"
 	./build/bin/evmstationd config set client chain-id "$CHAINID" --home "$HOMEDIR"
-
+	./build/bin/evmstationd config set client keyring-backend $KEYRING --home "$HOMEDIR"
 	# If keys exist they should be deleted
 	for KEY in "${KEYS[@]}"; do
 		./build/bin/evmstationd keys add $KEY --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
@@ -78,7 +75,8 @@ set -e
 
 # Change the Default EVM Config
 
-sed -i "/\[polaris\.polar\.chain\]/!b;n;c chain-id = \"$EVMCHAINID\"" ./.evmstation/config/app.toml
+#sed -i "/\[polaris\.polar\.chain\]/!b;n;c chain-id = \"$EVMCHAINID\"" ./.evmstation/config/app.toml
+sed -i "/\[polaris\.polar\.chain\]/!b;n;c chain-id = \"$EVMCHAINID\"" $HOMEDIR/config/app.toml
 ## Change exactly  persistent peers in config.toml
 
 
@@ -106,4 +104,4 @@ sed -i "/\[polaris\.polar\.chain\]/!b;n;c chain-id = \"$EVMCHAINID\"" ./.evmstat
 	fi
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)m
-./build/bin/evmstationd start --pruning=nothing "$TRACE" --log_level $LOGLEVEL --api.enabled-unsafe-cors --api.enable --api.swagger --minimum-gas-prices=0.0001abera --home "$HOMEDIR"
+#./build/bin/evmstationd start --pruning=nothing "$TRACE" --log_level $LOGLEVEL --api.enabled-unsafe-cors --api.enable --api.swagger --minimum-gas-prices=0.0001abera --home "$HOMEDIR"

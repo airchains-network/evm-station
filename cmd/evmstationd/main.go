@@ -23,7 +23,6 @@ package main
 import (
 	testapp "github.com/airchains-network/evm-station/app"
 	"github.com/airchains-network/evm-station/cmd/evmstationd/cmd"
-	"github.com/berachain/polaris/cosmos/config"
 	"os"
 
 	"cosmossdk.io/log"
@@ -32,7 +31,7 @@ import (
 )
 
 func main() {
-	config.SetupCosmosConfig()
+	//config.SetupCosmosConfig()
 
 	rootCmd := cmd.NewRootCmd()
 	if err := svrcmd.Execute(rootCmd, "", testapp.DefaultNodeHome); err != nil {

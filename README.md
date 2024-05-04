@@ -15,7 +15,6 @@ The project requires:
 
 
 ## Getting Started
-
 - To begin using this project, firstly clone this repository to your local machine. 
 ```shell
     git clone https://github.com/airchains-network/evm-station
@@ -23,17 +22,28 @@ The project requires:
     go mod tidy;
 ```
 
-   
-
-## Running the project
-
-- To run the project, execute the following command:
+## EVM node setup
+- To setup the evm node, execute the following command:
 ```shell
     /bin/bash ./scripts/local-setup.sh
 ```
+⚠️ **Warning:**
+This command will delete old data at `~/.evmstation` and `./build` directories. Also it will `delete keys of DA and Junction`. So make sure those wallets don't have balance, or export the keys before running this command.
 
 
+### Init sequencer
+```shell
+  build/bin/evmstationd sequencer init --home "$HOMEDIR" --daRpc "mock-rpc" --daKey "mockKey" --daType "mock" --junctionRpc "http://0.0.0.0:26657" --junctionKeyName j-key
+```
 
+### Get Details of Sequencer, Balance of Junction, and DA
+```shell
+  build/bin/evmstationd sequencer details
+  build/bin/evmstationd sequencer balance junction
+  build/bin/evmstationd sequencer balance da  # currently not create or implimented
+````
+
+warning: 
 ## Contributing
 Contributions are greatly appreciated. You can make contributions by creating issues, fixing bugs, or suggesting new features. Feel free to fork this repository and create pull requests to affect changes.
 
