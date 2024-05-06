@@ -32,7 +32,8 @@ This command will delete old data at `~/.evmstation` and `./build` directories. 
 
 ### Init sequencer
 ```shell
-  build/bin/evmstationd sequencer init --home "$HOMEDIR" --daRpc "mock-rpc" --daKey "mockKey" --daType "mock" --junctionRpc "http://0.0.0.0:26657" --junctionKeyName j-key
+  HOMEDIR=$HOME/.evmstationd
+  build/bin/evmstationd sequencer init --home "$HOMEDIR" --daRpc "mock-rpc" --daKey "mockKey" --daType "mock" --junctionRpc "http://0.0.0.0:26667" --junctionKeyName j-key
 ```
 
 ### Get Details of Sequencer, Balance of Junction, and DA
@@ -41,6 +42,27 @@ This command will delete old data at `~/.evmstation` and `./build` directories. 
   build/bin/evmstationd sequencer balance junction
   build/bin/evmstationd sequencer balance da  # currently not create or implimented
 ````
+
+### Create Station
+To create a station in Junction, run the following command:
+```bash
+  build/bin/evmstationd sequencer create-station --info "some info"
+```
+
+### Start the node
+To start the node, run the following command:
+```bash
+  /bin/bash ./scripts/local-start.sh
+```
+
+By default, the `--track` parameter uses the address created during sequencer initialization in above steps.
+Alternatively, if you want to specify a different or multiple track address, use the following command format:
+```bash
+build/bin/evmstationd sequencer create-station --info "some info" --tracks ["<track_address-1>","<track_address-2>"]
+```
+Make sure to replace `<track_address>` with the appropriate address, including your own address created in the previous steps.
+**Note:** Ensure you use the correct track address, including yours created in the previous steps.
+
 
 ## Contributing
 Contributions are greatly appreciated. You can make contributions by creating issues, fixing bugs, or suggesting new features. Feel free to fork this repository and create pull requests to affect changes.

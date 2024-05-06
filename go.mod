@@ -8,6 +8,8 @@ replace (
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 	github.com/cockroachdb/pebble => github.com/cockroachdb/pebble v0.0.0-20230928194634-aa077af62593
+
+	//github.com/cometbft/cometbft => ../air-bft
 	// We replace `go-ethereum` with `polaris-geth` in order include our required changes.
 	github.com/ethereum/go-ethereum => github.com/berachain/polaris-geth v0.0.0-20240108202417-27ce389773c0
 	// Fix upstream GHSA-h395-qcrw-5vmq and GHSA-3vp4-m3rf-835h vulnerabilities.
@@ -27,10 +29,10 @@ require (
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/math v1.3.0 // indirect
 	cosmossdk.io/store v1.0.2
-	cosmossdk.io/tools/confix v0.1.0
+	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/evidence v0.1.0
 	cosmossdk.io/x/tx v0.13.1 // indirect
-	cosmossdk.io/x/upgrade v0.1.0
+	cosmossdk.io/x/upgrade v0.1.1
 	github.com/berachain/polaris/cosmos v0.1.2-alpha
 	github.com/berachain/polaris/eth v0.1.2-alpha
 	github.com/cometbft/cometbft v0.38.6
@@ -45,6 +47,7 @@ require (
 require (
 	cosmossdk.io/errors v1.0.1
 	github.com/BurntSushi/toml v1.3.2
+	github.com/airchains-network/junction v0.1.0
 	github.com/consensys/gnark v0.10.0
 	github.com/consensys/gnark-crypto v0.12.2-0.20240215234832-d72fcb379d3e
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4
@@ -52,6 +55,7 @@ require (
 	github.com/cosmos/ibc-go/modules/capability v1.0.0
 	github.com/cosmos/ibc-go/v8 v8.1.1
 	github.com/golang/protobuf v1.5.4
+	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/ignite/cli/v28 v28.3.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240205150955-31a09d347014
@@ -127,7 +131,7 @@ require (
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/emicklei/dot v1.6.1 // indirect
 	github.com/ethereum/c-kzg-4844 v0.4.0 // indirect
-	github.com/ethereum/go-ethereum v1.13.7 // indirect
+	github.com/ethereum/go-ethereum v1.13.14 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fjl/memsize v0.0.1 // indirect
@@ -165,7 +169,6 @@ require (
 	github.com/google/orderedcode v0.0.1 // indirect
 	github.com/google/pprof v0.0.0-20240117000934-35fc243c5815 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gorilla/handlers v1.5.2 // indirect
@@ -176,10 +179,10 @@ require (
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/hashicorp/go-bexpr v0.1.12 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-getter v1.7.1 // indirect
+	github.com/hashicorp/go-getter v1.7.3 // indirect
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
-	github.com/hashicorp/go-metrics v0.5.1 // indirect
+	github.com/hashicorp/go-metrics v0.5.2 // indirect
 	github.com/hashicorp/go-plugin v1.6.0 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
@@ -282,7 +285,7 @@ require (
 	go.opentelemetry.io/otel v1.22.0 // indirect
 	go.opentelemetry.io/otel/metric v1.22.0 // indirect
 	go.opentelemetry.io/otel/trace v1.22.0 // indirect
-	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.4.0 // indirect
 	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect

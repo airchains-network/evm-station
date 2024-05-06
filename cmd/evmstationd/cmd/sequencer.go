@@ -8,7 +8,9 @@ import (
 	"github.com/airchains-network/evm-station/shared"
 	"github.com/airchains-network/evm-station/types"
 	"github.com/airchains-network/evm-station/zk"
+	junctionTypes "github.com/airchains-network/junction/x/junction/types"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
@@ -27,8 +29,8 @@ func ConnectJunctionClient(cmd *cobra.Command, homeDir string) error {
 			log.NewLogger(os.Stderr).Warn("Failed to get user home directory")
 			return err
 		}
-		jKeyPath := filepath.Join(homeDir, JunctionKeysFolder)
-		j := shared.JunctionNewConfig(junctionRpc, jKeyPath)
+		keyHomePath := filepath.Join(homeDir, JunctionKeysFolder)
+		j := shared.JunctionNewConfig(junctionRpc, keyHomePath)
 		shared.SetJunctionClient(j)
 	}
 	return nil
@@ -94,6 +96,9 @@ var sequencerCommands = func() *cobra.Command {
 		Short: "Create station code call to junction",
 		Run:   CreateStationOnJunction,
 	}
+	CreateStationCmd.Flags().String("info", "", "Station information")
+	CreateStationCmd.Flags().StringSlice("tracks", []string{}, "Array for tracks for new station")
+	CreateStationCmd.MarkFlagRequired("info")
 	sequencerCmd.AddCommand(CreateStationCmd)
 
 	return sequencerCmd
@@ -308,94 +313,108 @@ func CheckBalanceJunction(cmd *cobra.Command) {
 
 func CreateStationOnJunction(cmd *cobra.Command, args []string) {
 
-	//sequencerConfigs, err := getSequencerData(cmd)
-	//if err != nil {
-	//	log.NewLogger(os.Stderr).Error(err.Error())
-	//	return
-	//}
-	//
-	//clientCtx, err := client.GetClientQueryContext(cmd)
-	//if err != nil {
-	//	log.NewLogger(os.Stderr).Error(err.Error())
-	//}
-	//homeDir := clientCtx.HomeDir
-	//
-	////get values from all flags
-	//info, _ := cmd.Flags().GetString("info")
-	//if info == "" {
-	//	log.NewLogger(os.Stderr).Error("info is required")
-	//	return
-	//}
-	//
-	//accountName := sequencerConfigs.JunctionKeyName
-	//keyringDir := filepath.Join(homeDir, JunctionKeysFolder)
-	//addr, err := junction.CheckIfAccountExists(accountName, keyringDir)
-	//if err != nil {
-	//	log.NewLogger(os.Stderr).Error("Error in getting account address: " + err.Error())
-	//	return
-	//}
-	//
-	//tracks, _ := cmd.Flags().GetStringSlice("tracks")
-	//if len(tracks) == 0 {
-	//	log.NewLogger(os.Stderr).Info("--tracks is not provided so taking default account as track")
-	//	tracks = append(tracks, addr)
-	//}
-	//
-	//jClient, jConnected := shared.GetJunctionClint()
-	//if !jConnected {
-	//	log.NewLogger(os.Stderr).Error("Junction client not connected")
-	//	return
-	//}
-	//
-	//haveBalance, value, err := junction.CheckBalance(jClient, addr)
-	//if err != nil {
-	//	log.NewLogger(os.Stderr).Error("Error in checking balance of"+addr, "Error", err.Error())
-	//	return
-	//} else if !haveBalance {
-	//	log.NewLogger(os.Stderr).Warn("Not have balance in " + addr)
-	//	return
-	//}
-	//
-	//log.NewLogger(os.Stderr).Info("Junction Account Balance (in amf):", "account", addr, "balance", value)
-	//
-	//// get verification key
-	//provingKey, verificationKey, err := zk.GetVkPk(homeDir)
-	//if err != nil {
-	//	log.NewLogger(os.Stderr).Error(err.Error())
-	//}
-	//_ = provingKey // its not required to create junction
-	//
-	//stationInfo := types.StationInfo{
-	//	StationType: StationType,
-	//}
-	//
-	//extraArg := junctionTypes.StationArg{
-	//	TrackType: TrackType,
-	//	DaType:    sequencerConfigs.DaType,
-	//	Prover:    Prover,
-	//}
-	//
-	//registry, err := cosmosaccount.New(cosmosaccount.WithHome(keyringDir))
-	//if err != nil {
-	//	logs.Log.Error("error in getting registary" + err.Error())
-	//	return
-	//}
-	//
-	//account, err := registry.GetByName(accountName)
-	//if err != nil {
-	//	logs.Log.Error("error in getting account" + err.Error())
-	//	return
-	//}
-	//_ = account
-	//_ = verificationKey
-	//_ = stationInfo
-	//_ = extraArg
+	sequencerConfigs, err := getSequencerData(cmd)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error(err.Error())
+		return
+	}
 
-	//success := junction.CreateStation(*jClient, account, addr, extraArg, uuid.New().String(), stationInfo, verificationKey, addressPrefix, tracks)
-	//if !success {
-	//	logs.Log.Error("Failed to create new station due to above error")
-	//	return
-	//}
+	clientCtx, err := client.GetClientQueryContext(cmd)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error(err.Error())
+	}
+	homeDir := clientCtx.HomeDir
 
-	return
+	err = ConnectJunctionClient(cmd, homeDir)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error(err.Error())
+		return
+	}
+
+	//get values from all flags
+	info, _ := cmd.Flags().GetString("info")
+	if info == "" {
+		log.NewLogger(os.Stderr).Error("info is required")
+		return
+	}
+
+	accountName := sequencerConfigs.JunctionKeyName
+	keyringDir := filepath.Join(homeDir, JunctionKeysFolder)
+	addr, err := junction.CheckIfAccountExists(accountName, keyringDir)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error in getting account address: " + err.Error())
+		return
+	}
+
+	tracks, _ := cmd.Flags().GetStringSlice("tracks")
+	if len(tracks) == 0 {
+		log.NewLogger(os.Stderr).Info("--tracks is not provided so taking default account as track")
+		tracks = append(tracks, addr)
+	}
+
+	jClient, jConnected := shared.GetJunctionClient()
+	if !jConnected {
+		log.NewLogger(os.Stderr).Error("Junction client not connected")
+		return
+	}
+
+	haveBalance, value, err := junction.CheckBalance(jClient, addr)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error in checking balance of"+addr, "Error", err.Error())
+		return
+	} else if !haveBalance {
+		log.NewLogger(os.Stderr).Warn("Not have balance in " + addr)
+		return
+	}
+
+	log.NewLogger(os.Stderr).Info("Junction Account Balance (in amf):", "account", addr, "balance", value)
+
+	// get verification key
+	provingKey, verificationKey, err := zk.GetVkPk(homeDir)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error(err.Error())
+	}
+	_ = provingKey // its not required to create junction
+
+	stationInfo := types.StationInfo{
+		StationType: StationType,
+	}
+
+	extraArg := junctionTypes.StationArg{
+		TrackType: TrackType,
+		DaType:    sequencerConfigs.DaType,
+		Prover:    Prover,
+	}
+
+	fmt.Println(keyringDir)
+
+	stationId := uuid.New().String()
+	success := junction.CreateStation(*jClient, keyringDir, accountName, addr, extraArg, stationId, stationInfo, verificationKey, tracks)
+	if !success {
+		log.NewLogger(os.Stderr).Error("Failed to create station")
+		return
+	}
+
+	log.NewLogger(os.Stderr).Info("Successfully created station")
+	// save stationId in sequencer configuration
+	sequencerConfigs.StationId = stationId
+
+	tracksDir := filepath.Join(homeDir, EvmStationDir)
+	sFile := filepath.Join(tracksDir, SequencerFileName)
+	log.NewLogger(os.Stderr).Info("Writing configuration", "Path", sFile)
+	file, err := os.Create(sFile)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error creating file", "err", err)
+		return
+	}
+	defer file.Close()
+
+	// Use the TOML encoder to write directly to the file
+	if err := toml.NewEncoder(file).Encode(sequencerConfigs); err != nil {
+		log.NewLogger(os.Stderr).Error("Error encoding configuration", "err", err)
+		return
+	} else {
+		log.NewLogger(os.Stderr).Info("Included Station Id in Sequencer configuration successfully.")
+		return
+	}
 }
