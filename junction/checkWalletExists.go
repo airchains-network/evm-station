@@ -16,7 +16,7 @@ func CheckIfAccountExists(accountName, accountPath string) (addr string, err err
 		return "", err
 	}
 
-	addr, err = account.Address(JunctionAddressPrefix)
+	addr, err = account.Address(addressPrefix)
 	if err != nil {
 		return "", err
 	}

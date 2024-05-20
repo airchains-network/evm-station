@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/airchains-network/evm-station/junction"
+	"github.com/airchains-network/evm-station/sequencer"
 	"github.com/airchains-network/evm-station/shared"
 	"github.com/airchains-network/evm-station/types"
 	"github.com/airchains-network/evm-station/zk"
@@ -37,6 +38,7 @@ func ConnectJunctionClient(cmd *cobra.Command, homeDir string) error {
 }
 
 var sequencerCommands = func() *cobra.Command {
+
 	sequencerCmd := &cobra.Command{
 		Use:   "sequencer",
 		Short: "Interact with the sequencer operations",
@@ -101,6 +103,14 @@ var sequencerCommands = func() *cobra.Command {
 	CreateStationCmd.MarkFlagRequired("info")
 	sequencerCmd.AddCommand(CreateStationCmd)
 
+	// start sequencer. take data from 26657
+	StartSequencerCmd := &cobra.Command{
+		Use:   "start",
+		Short: "Start the sequencer",
+		Run:   StartSequencer,
+	}
+	sequencerCmd.AddCommand(StartSequencerCmd)
+
 	return sequencerCmd
 }
 
@@ -161,10 +171,18 @@ var InitSequencerCmd = &cobra.Command{
 			return
 		}
 
-		jKeyPath := filepath.Join(homeDir, JunctionKeysFolder)
-		log.NewLogger(os.Stderr).Info("Creating account at", "Path", jKeyPath)
+		// create proving and verification key
+		log.NewLogger(os.Stderr).Info("Creating proving and verification keys")
+		err = zk.CreateVkPkNew(homeDir)
+		if err != nil {
+			log.NewLogger(os.Stderr).Error("Error in creating vk and pk: " + err.Error())
+			return
+		}
+		//log.NewLogger(os.Stderr).Info("Proving and Verification keys created successfully")
 
 		// create wallet
+		jKeyPath := filepath.Join(homeDir, JunctionKeysFolder)
+		log.NewLogger(os.Stderr).Info("Creating account at", "Path", jKeyPath)
 		err = junction.CreateAccount(configs.JunctionKeyName, jKeyPath, addressPrefix)
 		if err != nil {
 			log.NewLogger(os.Stderr).Error("Error creating account", "err", err)
@@ -173,7 +191,6 @@ var InitSequencerCmd = &cobra.Command{
 
 		tracksDir := filepath.Join(homeDir, EvmStationDir)
 		sFile := filepath.Join(tracksDir, SequencerFileName)
-		log.NewLogger(os.Stderr).Info("Writing configuration", "Path", sFile)
 		file, err := os.Create(sFile)
 		if err != nil {
 			log.NewLogger(os.Stderr).Error("Error creating file", "err", err)
@@ -186,13 +203,7 @@ var InitSequencerCmd = &cobra.Command{
 			log.NewLogger(os.Stderr).Error("Error encoding configuration", "err", err)
 			return
 		} else {
-			err = zk.CreateVkPkNew(homeDir)
-			if err != nil {
-				log.NewLogger(os.Stderr).Error("Error in creating vk and pk: " + err.Error())
-				return
-			}
-
-			log.NewLogger(os.Stderr).Info("Sequencer configuration saved successfully")
+			log.NewLogger(os.Stderr).Info("Sequencer configuration saved successfully", "Path", sFile)
 			return
 		}
 		// create proving and verification key
@@ -386,8 +397,6 @@ func CreateStationOnJunction(cmd *cobra.Command, args []string) {
 		Prover:    Prover,
 	}
 
-	fmt.Println(keyringDir)
-
 	stationId := uuid.New().String()
 	success := junction.CreateStation(*jClient, keyringDir, accountName, addr, extraArg, stationId, stationInfo, verificationKey, tracks)
 	if !success {
@@ -417,4 +426,16 @@ func CreateStationOnJunction(cmd *cobra.Command, args []string) {
 		log.NewLogger(os.Stderr).Info("Included Station Id in Sequencer configuration successfully.")
 		return
 	}
+}
+
+func StartSequencer(cmd *cobra.Command, args []string) {
+
+	sequencerConfigs, err := getSequencerData(cmd)
+
+	if err != nil {
+		log.NewLogger(os.Stderr).Error(err.Error())
+		return
+	}
+
+	sequencer.Start(sequencerConfigs)
 }

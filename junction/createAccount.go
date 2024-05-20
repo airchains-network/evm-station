@@ -17,6 +17,7 @@ func CreateAccount(accountName, accountPath, addressPrefix string) (err error) {
 	}
 
 	// create wallet
+
 	account, mnemonic, err := registry.Create(accountName)
 	if err != nil {
 		return err
@@ -45,5 +46,6 @@ func CreateAccount(accountName, accountPath, addressPrefix string) (err error) {
 	}
 	log.NewLogger(os.Stderr).Info("Account details saved in file.", "filename", filename)
 	log.NewLogger(os.Stderr).Info("Account created", "address", addr, "mnemonic", mnemonic)
+	log.NewLogger(os.Stderr).Warn("Put balance in Account before starting tracks", "address", addr)
 	return nil
 }

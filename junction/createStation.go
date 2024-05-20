@@ -4,7 +4,6 @@ import (
 	"context"
 	"cosmossdk.io/log"
 	"encoding/json"
-	"fmt"
 	"github.com/airchains-network/evm-station/types"
 	junctionTypes "github.com/airchains-network/junction/x/junction/types"
 	"github.com/consensys/gnark/backend/groth16"
@@ -30,7 +29,6 @@ func CreateStation(junctionClient cosmosclient.Client, keyringDir, accountName, 
 		log.NewLogger(os.Stderr).Error("Error in getting account address: " + err.Error())
 		return false
 	}
-	fmt.Println("Account address: ", addr)
 
 	stationJsonBytes, err := json.Marshal(stationInfo)
 	if err != nil {
@@ -83,6 +81,24 @@ func CreateStation(junctionClient cosmosclient.Client, keyringDir, accountName, 
 		return false
 	}
 
-	log.NewLogger(os.Stdout).Info("Transaction sent successfully", "txHash", txResp.TxHash)
+	log.NewLogger(os.Stdout).Info("Transaction sent successfully", "txHash", txResp.TxHash, "stationId", stationId)
+
+	// create VRF Keys
+	vrfPrivateKey, vrfPublicKey := NewKeyPair()
+	vrfPrivateKeyHex := vrfPrivateKey.String()
+	vrfPublicKeyHex := vrfPublicKey.String()
+	if vrfPrivateKeyHex != "" {
+		SetVRFPrivKey(vrfPrivateKeyHex)
+	} else {
+		log.NewLogger(os.Stderr).Error("Error saving VRF private key")
+		return false
+	}
+	if vrfPublicKeyHex != "" {
+		SetVRFPubKey(vrfPublicKeyHex)
+	} else {
+		log.NewLogger(os.Stderr).Error("Error saving VRF public key")
+		return false
+	}
+	log.NewLogger(os.Stderr).Info("Successfully Created VRF public and private Keys")
 	return true
 }

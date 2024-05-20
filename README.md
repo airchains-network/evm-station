@@ -13,7 +13,6 @@ The project requires:
 - [Go](https://golang.org/dl/) (Version 1.22 or later)
 - [jq](https://stedolan.github.io/jq/download/): A lightweight and flexible command-line JSON processor.
 
-
 ## Getting Started
 - To begin using this project, firstly clone this repository to your local machine. 
 ```shell
@@ -24,16 +23,23 @@ The project requires:
 
 ## EVM node setup
 - To setup the evm node, execute the following command:
+
+⚠️ **Warning:**
+This command will delete old data at `~/.evmstation` and `./build` directories. Also it will `delete keys of DA and Junction`. So make sure those wallets don't have balance, or export the keys before running this command.
 ```shell
     /bin/bash ./scripts/local-setup.sh
 ```
-⚠️ **Warning:**
-This command will delete old data at `~/.evmstation` and `./build` directories. Also it will `delete keys of DA and Junction`. So make sure those wallets don't have balance, or export the keys before running this command.
 
 ### Init sequencer
+For Testing: `Mock DA`
 ```shell
   HOMEDIR=$HOME/.evmstationd
-  build/bin/evmstationd sequencer init --home "$HOMEDIR" --daRpc "mock-rpc" --daKey "mockKey" --daType "mock" --junctionRpc "http://0.0.0.0:26667" --junctionKeyName j-key
+  build/bin/evmstationd sequencer init --home "$HOMEDIR" --daRpc "mock-rpc" --daKey "mockKey" --daType "mock" --junctionRpc "http://0.0.0.0:26657" --junctionKeyName j-key
+```
+Alternative: `For Eigen DA`
+```shell 
+  HOMEDIR=$HOME/.evmstationd
+build/bin/evmstationd sequencer init --home "$HOMEDIR" --daRpc "disperser-holesky.eigenda.xyz" --daKey "9430d5ad8ea52329be63afe66a8c8d5e0ba75bf0de0cbd41aa30fadf5f575ec24cff557777e20a0578ec4fedc66274c37fe5d25ed4c4a09cb73b1ddc15349bb4" --daType "eigen" --junctionRpc "http://0.0.0.0:26657" --junctionKeyName j-key
 ```
 
 ### Get Details of Sequencer, Balance of Junction, and DA
@@ -41,12 +47,17 @@ This command will delete old data at `~/.evmstation` and `./build` directories. 
   build/bin/evmstationd sequencer details
   build/bin/evmstationd sequencer balance junction
   build/bin/evmstationd sequencer balance da  # currently not create or implimented
-````
+```
 
 ### Create Station
 To create a station in Junction, run the following command:
 ```bash
-  build/bin/evmstationd sequencer create-station --info "some info"
+  build/bin/evmstationd sequencer create-station --info "some info" 
+```
+By default, the `--track` parameter uses the address created during sequencer initialization in above steps.
+Alternatively, if you want to specify a different or multiple track address, use the following command format:
+```bash
+build/bin/evmstationd sequencer create-station --info "some info" --tracks ["<track_address-1>","<track_address-2>"]
 ```
 
 ### Start the node
@@ -55,18 +66,11 @@ To start the node, run the following command:
   /bin/bash ./scripts/local-start.sh
 ```
 
-By default, the `--track` parameter uses the address created during sequencer initialization in above steps.
-Alternatively, if you want to specify a different or multiple track address, use the following command format:
-```bash
-build/bin/evmstationd sequencer create-station --info "some info" --tracks ["<track_address-1>","<track_address-2>"]
-```
 Make sure to replace `<track_address>` with the appropriate address, including your own address created in the previous steps.
 **Note:** Ensure you use the correct track address, including yours created in the previous steps.
 
-
 ## Contributing
 Contributions are greatly appreciated. You can make contributions by creating issues, fixing bugs, or suggesting new features. Feel free to fork this repository and create pull requests to affect changes.
-
 
 ## License
 This project is licensed under the MIT license - see the [LICENSE](LICENSE) file for more information.

@@ -61,9 +61,12 @@ set -e
 	./build/bin/evmstationd config set client chain-id "$CHAINID" --home "$HOMEDIR"
 	./build/bin/evmstationd config set client keyring-backend $KEYRING --home "$HOMEDIR"
 	# If keys exist they should be deleted
-	for KEY in "${KEYS[@]}"; do
-		./build/bin/evmstationd keys add $KEY --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
-	done
+#	for KEY in "${KEYS[@]}"; do
+#		./build/bin/evmstationd keys add $KEY --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
+#	done
+		./build/bin/evmstationd keys add dev0 --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
+		./build/bin/evmstationd keys add dev1 --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
+		./build/bin/evmstationd keys add dev2 --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
 
 	# Change parameter token denominations to absera
 	jq '.app_state["staking"]["params"]["bond_denom"]="abera"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
@@ -80,11 +83,14 @@ sed -i "/\[polaris\.polar\.chain\]/!b;n;c chain-id = \"$EVMCHAINID\"" $HOMEDIR/c
 ## Change exactly  persistent peers in config.toml
 
 
-
 	# Allocate genesis accounts (cosmos formatted addresses)
-	for KEY in "${KEYS[@]}"; do
-		./build/bin/evmstationd genesis add-genesis-account $KEY 100000000000000000000000000abera --keyring-backend $KEYRING --home "$HOMEDIR"
-	done
+#	for KEY in "${KEYS[@]}"; do
+#		./build/bin/evmstationd genesis add-genesis-account $KEY 100000000000000000000000000abera --keyring-backend $KEYRING --home "$HOMEDIR"
+#	done
+
+./build/bin/evmstationd genesis add-genesis-account dev0 100000000000000000000000000abera --keyring-backend $KEYRING --home "$HOMEDIR"
+./build/bin/evmstationd genesis add-genesis-account dev2 100000000000000000000000000abera --keyring-backend $KEYRING --home "$HOMEDIR"
+./build/bin/evmstationd genesis add-genesis-account dev1 100000000000000000000000000abera --keyring-backend $KEYRING --home "$HOMEDIR"
 
 	# Test Account
 	# absurd surge gather author blanket acquire proof struggle runway attract cereal quiz tattoo shed almost sudden survey boring film memory picnic favorite verb tank
