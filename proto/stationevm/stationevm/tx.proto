@@ -1,7 +1,0 @@
-syntax = "proto3";
-package stationevm.stationevm;
-
-option go_package = "station-evm/x/stationevm/types";
-
-// Msg defines the Msg service.
-service Msg {}
