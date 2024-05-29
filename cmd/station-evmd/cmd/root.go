@@ -54,6 +54,7 @@ const (
 // NewRootCmd creates a new root command for evmosd. It is called once in the
 // main function.
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
+	initSDKConfig()
 	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).

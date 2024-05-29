@@ -149,7 +149,7 @@ func init() {
 }
 
 const (
-	AccountAddressPrefix = "cosmos"
+	AccountAddressPrefix = "stationevm"
 	Name                 = "station-evm"
 )
 
@@ -171,7 +171,7 @@ var (
 			[]govclient.ProposalHandler{
 				paramsclient.ProposalHandler, distrclient.ProposalHandler, upgradeclient.LegacyProposalHandler, upgradeclient.LegacyCancelProposalHandler,
 				ibcclientclient.UpdateClientProposalHandler, ibcclientclient.UpgradeProposalHandler,
-				// Evmos proposal types
+				// EvmStation proposal types
 				erc20client.RegisterCoinProposalHandler, erc20client.RegisterERC20ProposalHandler, erc20client.ToggleTokenConversionProposalHandler,
 			},
 		),
@@ -213,14 +213,14 @@ var (
 )
 
 var (
-	_ servertypes.Application = (*Evmos)(nil)
-	_ ibctesting.TestingApp   = (*Evmos)(nil)
+	_ servertypes.Application = (*EvmStation)(nil)
+	_ ibctesting.TestingApp   = (*EvmStation)(nil)
 )
 
-// Evmos implements an extended ABCI application. It is an application
+// EvmStation implements an extended ABCI application. It is an application
 // that may process transactions through Ethereum's EVM running atop of
 // Tendermint consensus.
-type Evmos struct {
+type EvmStation struct {
 	*baseapp.BaseApp
 
 	// encoding
@@ -261,7 +261,7 @@ type Evmos struct {
 	EvmKeeper       *evmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
 
-	// Evmos keepers
+	// EvmStation keepers
 	ClaimsKeeper *claimskeeper.Keeper
 	Erc20Keeper  erc20keeper.Keeper
 
@@ -272,8 +272,8 @@ type Evmos struct {
 	configurator module.Configurator
 }
 
-// NewEvmos returns a reference to a new initialized Ethermint application.
-func NewEvmos(
+// NewEvmStation returns a reference to a new initialized Ethermint application.
+func NewEvmStation(
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
@@ -284,7 +284,7 @@ func NewEvmos(
 	encodingConfig stationparams.EncodingConfig,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
-) *Evmos {
+) *EvmStation {
 	appCodec := encodingConfig.Codec
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
@@ -328,7 +328,7 @@ func NewEvmos(
 		os.Exit(1)
 	}
 
-	app := &Evmos{
+	app := &EvmStation{
 		BaseApp:           bApp,
 		cdc:               cdc,
 		appCodec:          appCodec,
@@ -536,7 +536,7 @@ func NewEvmos(
 		// Ethermint app modules
 		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
-		// Evmos app modules
+		// EvmStation app modules
 
 		erc20.NewAppModule(app.Erc20Keeper, app.AccountKeeper,
 			app.GetSubspace(erc20types.ModuleName)),
@@ -601,7 +601,7 @@ func NewEvmos(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
-		// Evmos modules
+		// EvmStation modules
 		erc20types.ModuleName,
 	)
 
@@ -636,7 +636,7 @@ func NewEvmos(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
-		// Evmos modules
+		// EvmStation modules
 		erc20types.ModuleName,
 		// NOTE: crisis module must go at the end to check for invariants on each module
 		crisistypes.ModuleName,
@@ -678,9 +678,9 @@ func NewEvmos(
 }
 
 // Name returns the name of the App
-func (app *Evmos) Name() string { return app.BaseApp.Name() }
+func (app *EvmStation) Name() string { return app.BaseApp.Name() }
 
-func (app *Evmos) setAnteHandler(txConfig client.TxConfig, maxGasWanted uint64) {
+func (app *EvmStation) setAnteHandler(txConfig client.TxConfig, maxGasWanted uint64) {
 	setAnte := ante.MustCreateHandler(
 		app.appCodec,
 		txConfig,
@@ -695,7 +695,7 @@ func (app *Evmos) setAnteHandler(txConfig client.TxConfig, maxGasWanted uint64) 
 	)
 	app.SetAnteHandler(setAnte)
 }
-func (app *Evmos) setPostHandler() {
+func (app *EvmStation) setPostHandler() {
 	postHandler, err := posthandler.NewPostHandler(
 		posthandler.HandlerOptions{},
 	)
@@ -709,20 +709,20 @@ func (app *Evmos) setPostHandler() {
 // BeginBlocker runs the Tendermint ABCI BeginBlock logic. It executes state changes at the beginning
 // of the new block for every registered module. If there is a registered fork at the current height,
 // BeginBlocker will schedule the upgrade plan and perform the state migration (if any).
-func (app *Evmos) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+func (app *EvmStation) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	// Perform any scheduled forks before executing the modules logic
 	return app.mm.BeginBlock(ctx, req)
 }
 
 // EndBlocker updates every end block
-func (app *Evmos) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+func (app *EvmStation) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	return app.mm.EndBlock(ctx, req)
 }
 
 // The DeliverTx method is intentionally decomposed to calculate the transactions per second.
 
 // InitChainer updates at chain initialization
-func (app *Evmos) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *EvmStation) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState simapp.GenesisState
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
@@ -734,12 +734,12 @@ func (app *Evmos) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.R
 }
 
 // LoadHeight loads state at a particular height
-func (app *Evmos) LoadHeight(height int64) error {
+func (app *EvmStation) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
-func (app *Evmos) ModuleAccountAddrs() map[string]bool {
+func (app *EvmStation) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 
 	accs := make([]string, 0, len(maccPerms))
@@ -757,7 +757,7 @@ func (app *Evmos) ModuleAccountAddrs() map[string]bool {
 
 // BlockedAddrs returns all the app's module account addresses that are not
 // allowed to receive external tokens.
-func (app *Evmos) BlockedAddrs() map[string]bool {
+func (app *EvmStation) BlockedAddrs() map[string]bool {
 	blockedAddrs := make(map[string]bool)
 
 	accs := make([]string, 0, len(maccPerms))
@@ -773,59 +773,59 @@ func (app *Evmos) BlockedAddrs() map[string]bool {
 	return blockedAddrs
 }
 
-// LegacyAmino returns Evmos's amino codec.
+// LegacyAmino returns EvmStation's amino codec.
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *Evmos) LegacyAmino() *codec.LegacyAmino {
+func (app *EvmStation) LegacyAmino() *codec.LegacyAmino {
 	return app.cdc
 }
 
-// AppCodec returns Evmos's app codec.
+// AppCodec returns EvmStation's app codec.
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *Evmos) AppCodec() codec.Codec {
+func (app *EvmStation) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
-// InterfaceRegistry returns Evmos's InterfaceRegistry
-func (app *Evmos) InterfaceRegistry() types.InterfaceRegistry {
+// InterfaceRegistry returns EvmStation's InterfaceRegistry
+func (app *EvmStation) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
 // GetKey returns the KVStoreKey for the provided store key.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *Evmos) GetKey(storeKey string) *storetypes.KVStoreKey {
+func (app *EvmStation) GetKey(storeKey string) *storetypes.KVStoreKey {
 	return app.keys[storeKey]
 }
 
 // GetTKey returns the TransientStoreKey for the provided store key.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *Evmos) GetTKey(storeKey string) *storetypes.TransientStoreKey {
+func (app *EvmStation) GetTKey(storeKey string) *storetypes.TransientStoreKey {
 	return app.tkeys[storeKey]
 }
 
 // GetMemKey returns the MemStoreKey for the provided mem key.
 //
 // NOTE: This is solely used for testing purposes.
-func (app *Evmos) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
+func (app *EvmStation) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return app.memKeys[storeKey]
 }
 
 // GetSubspace returns a param subspace for a given module name.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *Evmos) GetSubspace(moduleName string) paramstypes.Subspace {
+func (app *EvmStation) GetSubspace(moduleName string) paramstypes.Subspace {
 	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
 	return subspace
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (app *Evmos) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+func (app *EvmStation) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 
 	// Register new tx routes from grpc-gateway.
@@ -844,12 +844,12 @@ func (app *Evmos) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConf
 	}
 }
 
-func (app *Evmos) RegisterTxService(clientCtx client.Context) {
+func (app *EvmStation) RegisterTxService(clientCtx client.Context) {
 	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
-func (app *Evmos) RegisterTendermintService(clientCtx client.Context) {
+func (app *EvmStation) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(
 		clientCtx,
 		app.BaseApp.GRPCQueryRouter(),
@@ -860,39 +860,39 @@ func (app *Evmos) RegisterTendermintService(clientCtx client.Context) {
 
 // RegisterNodeService registers the node gRPC service on the provided
 // application gRPC query router.
-func (app *Evmos) RegisterNodeService(clientCtx client.Context) {
+func (app *EvmStation) RegisterNodeService(clientCtx client.Context) {
 	node.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
 }
 
 // IBC Go TestingApp functions
 
 // GetBaseApp implements the TestingApp interface.
-func (app *Evmos) GetBaseApp() *baseapp.BaseApp {
+func (app *EvmStation) GetBaseApp() *baseapp.BaseApp {
 	return app.BaseApp
 }
 
 // GetStakingKeeper implements the TestingApp interface.
-func (app *Evmos) GetStakingKeeper() ibctestingtypes.StakingKeeper {
+func (app *EvmStation) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 	return app.StakingKeeper
 }
 
 // GetStakingKeeperSDK implements the TestingApp interface.
-func (app *Evmos) GetStakingKeeperSDK() stakingkeeper.Keeper {
+func (app *EvmStation) GetStakingKeeperSDK() stakingkeeper.Keeper {
 	return app.StakingKeeper
 }
 
 // GetIBCKeeper implements the TestingApp interface.
-func (app *Evmos) GetIBCKeeper() *ibckeeper.Keeper {
+func (app *EvmStation) GetIBCKeeper() *ibckeeper.Keeper {
 	return app.IBCKeeper
 }
 
 // GetScopedIBCKeeper implements the TestingApp interface.
-func (app *Evmos) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
+func (app *EvmStation) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 	return app.ScopedIBCKeeper
 }
 
 // GetTxConfig implements the TestingApp interface.
-func (app *Evmos) GetTxConfig() client.TxConfig {
+func (app *EvmStation) GetTxConfig() client.TxConfig {
 	cfg := encoding.MakeConfig(ModuleBasics)
 	return cfg.TxConfig
 }

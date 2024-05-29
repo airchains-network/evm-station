@@ -108,30 +108,33 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	USER4_MNEMONIC="doll midnight silk carpet brush boring pluck office gown inquiry duck chief aim exit gain never tennis crime fragile ship cloud surface exotic patch"
 
 	# Import keys from mnemonics
-	echo "$VAL_MNEMONIC" | ./build/station-evm keys add "$VAL_KEY" --recover --keyring-backend "$KEYRING" --algo "$KEYALGO" --home "$HOMEDIR"
+	echo "$VAL_MNEMONIC" | ./build/station-evm keys add "$VAL_KEY"  --keyring-backend "$KEYRING" --algo "$KEYALGO" --home "$HOMEDIR"
 
 echo "$HOMEDIR"
 	# Set moniker and chain-id for Evmos (Moniker can be anything, chain-id must be an integer)
 	./build/station-evm init $MONIKER -o --chain-id "$CHAINID" --home "$HOMEDIR"
 
+	# Change parameter token denominations to aevmos
+	jq '.app_state["staking"]["params"]["bond_denom"]="aevmos"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
+	jq '.app_state["gov"]["deposit_params"]["min_deposit"][0]["denom"]="aevmos"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
 
 
-	# Allocate genesis accounts (cosmos formatted addresses)
-	./build/station-evm add-genesis-account "$(./build/station-evm keys show "$VAL_KEY" -a --keyring-backend "$KEYRING" --home "$HOMEDIR")" 100000000000000000000000000stake --keyring-backend "$KEYRING" --home "$HOMEDIR"
+	# Set gas limit in genesis
+	jq '.consensus_params["block"]["max_gas"]="400000000"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
+
+	# Set base fee in genesis
+	jq '.app_state["feemarket"]["params"]["base_fee"]="'${BASEFEE}'"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
+
+#	# Allocate genesis accounts (cosmos formatted addresses)
+	./build/station-evm add-genesis-account "$(./build/station-evm keys show "$VAL_KEY" -a --keyring-backend "$KEYRING" --home "$HOMEDIR")" 100000000000000000000000000aevmos --keyring-backend "$KEYRING" --home "$HOMEDIR"
 
 
 	# Sign genesis transaction
-	./build/station-evm gentx "$VAL_KEY" 1000000000000000000000stake --gas-prices ${BASEFEE}stake --keyring-backend "$KEYRING" --chain-id "$CHAINID" --home "$HOMEDIR"
+	./build/station-evm gentx "$VAL_KEY" 1000000000000000000000aevmos --gas-prices ${BASEFEE}aevmos --keyring-backend "$KEYRING" --chain-id "$CHAINID" --home "$HOMEDIR"
 
 	# Collect genesis tx
 	./build/station-evm collect-gentxs --home "$HOMEDIR"
 
-	# Run this to ensure everything worked and that the genesis file is setup correctly
-	./build/station-evm validate-genesis --home "$HOMEDIR"
-
-	if [[ $1 == "pending" ]]; then
-		echo "pending mode is on, please wait for the first block committed."
-	fi
 fi
 

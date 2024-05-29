@@ -22,12 +22,26 @@ CONFIG=$HOMEDIR/config/config.toml
 APP_TOML=$HOMEDIR/config/app.toml
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
-
+	VAL_KEY="mykey"
 
 ./build/station-evm start \
 	--metrics "$TRACE" \
 	--log_level $LOGLEVEL \
-	--minimum-gas-prices=0.0001aevmos \
 	--json-rpc.api eth,txpool,personal,net,debug,web3 \
 	--home "$HOMEDIR" \
 	--chain-id "$CHAINID"
+
+
+
+##	# Allocate genesis accounts (cosmos formatted addresses)
+##	./build/station-evm add-genesis-account "$(./build/station-evm keys show "$VAL_KEY" -a --keyring-backend "$KEYRING" --home "$HOMEDIR")" 100000000000000000000000000aevmos --keyring-backend "$KEYRING" --home "$HOMEDIR"
+##
+#
+#	# Sign genesis transaction
+#	./build/station-evm gentx "$VAL_KEY" 1000000000000000000000aevmos --gas-prices ${BASEFEE}aevmos --keyring-backend "$KEYRING" --chain-id "$CHAINID" --home "$HOMEDIR"
+#
+#	# Collect genesis tx
+#	./build/station-evm collect-gentxs --home "$HOMEDIR"
+#
+#	# Run this to ensure everything worked and that the genesis file is setup correctly
+#	./build/station-evm validate-genesis --home "$HOMEDIR"
