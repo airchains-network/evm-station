@@ -1,52 +1,55 @@
-# stationevm
-**stationevm** is a blockchain built using Cosmos SDK and Tendermint and created with [Ignite CLI](https://ignite.com/cli).
+# EVM station
 
-## Get started
+## Introduction
 
-```
-ignite chain serve
-```
+The Ethereum Virtual Machine (EVM)-based Cosmos Chain represents a groundbreaking platform in the blockchain sphere, specifically designed for the creation and deployment of decentralized applications (DApps) and smart contracts. This platform is a harmonious blend of the scalability provided by the Cosmos network and the adaptability and widespread acceptance of the Ethereum Virtual Machine (EVM). It is engineered to cater to blockchain developers who are seeking a robust and flexible environment for their innovations.
 
-`serve` command installs dependencies, builds, initializes, and starts your blockchain in development.
+At its core, this platform offers a unique proposition: it combines the high-performance infrastructure of Cosmos, known for its inter-blockchain communication and scalability, with the powerful and versatile programming capabilities of the EVM. This integration allows developers to build sophisticated and efficient DApps and smart contracts that can leverage the best of both worlds.
 
-### Configure
 
-Your blockchain in development can be configured with `config.yml`. To learn more, see the [Ignite CLI docs](https://docs.ignite.com).
+## Prerequisites
+The project requires:
 
-### Web Frontend
+- [Go](https://golang.org/dl/) (Version 1.22 or later)
+- [jq](https://stedolan.github.io/jq/download/): A lightweight and flexible command-line JSON processor.
 
-Ignite CLI has scaffolded a Vue.js-based web app in the `vue` directory. Run the following commands to install dependencies and start the app:
 
-```
-cd vue
-npm install
-npm run serve
-```
+## Getting Started
 
-The frontend app is built using the `@starport/vue` and `@starport/vuex` packages. For details, see the [monorepo for Ignite front-end development](https://github.com/ignite/web).
-
-## Release
-To release a new version of your blockchain, create and push a new tag with `v` prefix. A new draft release with the configured targets will be created.
-
-```
-git tag v0.1
-git push origin v0.1
+- To begin using this project, firstly clone this repository to your local machine.
+```shell
+    git clone https://github.com/airchains-network/evm-station
+    cd evm-station;
+    go mod tidy;
 ```
 
-After a draft release is created, make your final changes from the release page and publish it.
 
-### Install
-To install the latest version of your blockchain node's binary, execute the following command on your machine:
 
+## Running the project
+
+- To setup the project, execute the following command:
+```shell
+    /bin/bash ./scripts/local-setup.sh 
 ```
-curl https://get.ignite.com/username/station-evm@latest! | sudo bash
+
+- To Start the station, execute the following command:
+```shell
+    /bin/bash ./scripts/local-start.sh 
 ```
-`username/station-evm` should match the `username` and `repo_name` of the Github repository to which the source code was pushed. Learn more about [the install process](https://github.com/allinbits/starport-installer).
 
-## Learn more
+- To Get the Private Keys of the EVM Chain, execute the following command:
+```shell
+    /bin/bash ./scripts/local-keys.sh 
+```
 
-- [Ignite CLI](https://ignite.com/cli)
-- [Tutorials](https://docs.ignite.com/guide)
-- [Ignite CLI docs](https://docs.ignite.com)
-- [Cosmos SDK docs](https://docs.cosmos.network)
-- [Developer Chat](https://discord.gg/ignite)
+
+
+## Contributing
+Contributions are greatly appreciated. You can make contributions by creating issues, fixing bugs, or suggesting new features. Feel free to fork this repository and create pull requests to affect changes.
+
+
+## License
+This project is licensed under the MIT license - see the [LICENSE](LICENSE) file for more information.
+
+## Contact
+For any inquiries or constructive feedback, please contact this email contact@airchains.io
