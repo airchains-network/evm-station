@@ -3,7 +3,7 @@ package cmd
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"station-evm/app"
+	"github.com/airchains-network/evm-station/app"
 )
 
 func initSDKConfig() {

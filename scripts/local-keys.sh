@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CHAINID="${CHAIN_ID:-stationevm_9000-100}"
+CHAINID="${CHAIN_ID:-stationevm_9000-1}"
 MONIKER="localtestnet"
 # Remember to change to other types of keyring like 'file' in-case exposing to outside world,
 # otherwise your balance will be wiped quickly
@@ -23,5 +23,6 @@ APP_TOML=$HOMEDIR/config/app.toml
 GENESIS=$HOMEDIR/config/genesis.json
 TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 VAL_KEY="mykey"
+
 
 ./build/station-evm  keys   unsafe-export-eth-key "$VAL_KEY"  --keyring-backend "$KEYRING"

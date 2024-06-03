@@ -3,8 +3,9 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	stationparams "station-evm/app/params"
+	stationparams "github.com/airchains-network/evm-station/app/params"
 
+	"github.com/airchains-network/evm-station/app/ante"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/evmos/evmos/v12/encoding"
@@ -22,7 +23,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"station-evm/app/ante"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
