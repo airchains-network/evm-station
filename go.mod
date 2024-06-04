@@ -4,10 +4,10 @@ go 1.19
 
 require (
 	cosmossdk.io/errors v1.0.1
+	github.com/airchains-network/evmos-v12 v0.0.0-20240603124324-bd096cccb5a3
 	github.com/cosmos/cosmos-sdk v0.46.16
 	github.com/cosmos/ibc-go/v6 v6.1.2
 	github.com/ethereum/go-ethereum v1.10.26
-	github.com/evmos/evmos/v12 v12.1.6
 	github.com/gorilla/mux v1.8.0
 	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cast v1.5.0
