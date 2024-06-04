@@ -3,7 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/evmos/evmos/v12/crypto/hd"
+	"github.com/airchains-network/evmos-v12/crypto/hd"
 	"io"
 	"os"
 	"path/filepath"
@@ -35,16 +35,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	evmosclient "github.com/evmos/evmos/v12/client"
-	"github.com/evmos/evmos/v12/client/debug"
-	"github.com/evmos/evmos/v12/encoding"
-	"github.com/evmos/evmos/v12/ethereum/eip712"
-	evmosserver "github.com/evmos/evmos/v12/server"
-	servercfg "github.com/evmos/evmos/v12/server/config"
-	srvflags "github.com/evmos/evmos/v12/server/flags"
+	evmosclient "github.com/airchains-network/evmos-v12/client"
+	"github.com/airchains-network/evmos-v12/client/debug"
+	"github.com/airchains-network/evmos-v12/encoding"
+	"github.com/airchains-network/evmos-v12/ethereum/eip712"
+	evmosserver "github.com/airchains-network/evmos-v12/server"
+	servercfg "github.com/airchains-network/evmos-v12/server/config"
+	srvflags "github.com/airchains-network/evmos-v12/server/flags"
 
-	"github.com/evmos/evmos/v12/app"
-	cmdcfg "github.com/evmos/evmos/v12/cmd/config"
+	"github.com/airchains-network/evmos-v12/app"
+	cmdcfg "github.com/airchains-network/evmos-v12/cmd/config"
 )
 
 const (

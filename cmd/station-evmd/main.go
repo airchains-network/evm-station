@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/airchains-network/evm-station/cmd/station-evmd/cmd"
+	"github.com/airchains-network/evmos-v12/app"
+	cmdcfg "github.com/airchains-network/evmos-v12/cmd/config"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-	"github.com/evmos/evmos/v12/app"
-	cmdcfg "github.com/evmos/evmos/v12/cmd/config"
 	"os"
 )
 
