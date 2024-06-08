@@ -2,8 +2,10 @@ package junction
 
 import (
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/group/edwards25519"
+	"io"
 	"os"
 	"path/filepath"
 )
@@ -15,13 +17,8 @@ func NewKeyPair() (privateKeyX kyber.Scalar, publicKeyX kyber.Point) {
 	return privateKey, publicKey
 }
 
-func SetVRFPubKey(pubKey string) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println("Error in getting home dir path: " + err.Error())
-	}
-	ConfigFilePath := filepath.Join(homeDir, BlockchainFolder)
-	VRFPubKeyPath := filepath.Join(ConfigFilePath, VrfPubKeyFile)
+func SetVRFPubKey(pubKey, homeDir string) {
+	VRFPubKeyPath := filepath.Join(homeDir, VrfPubKeyFile)
 	file, err := os.Create(VRFPubKeyPath)
 	if err != nil {
 		// Handle the error if the file cannot be created
@@ -45,18 +42,12 @@ func SetVRFPubKey(pubKey string) {
 		fmt.Println(fmt.Sprintf("error saving vrfPubKey.txt: %v", err))
 		return
 	}
-
 	// Print the stationId
 	fmt.Println(fmt.Sprintf("vrfPubKey ID: %s", pubKey))
 }
 
-func SetVRFPrivKey(privateKey string) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println("Error in getting home dir path: " + err.Error())
-	}
-	ConfigFilePath := filepath.Join(homeDir, BlockchainFolder)
-	VRFPrivKeyPath := filepath.Join(ConfigFilePath, VRFPrivKeyFile)
+func SetVRFPrivKey(privateKey, homeDir string) {
+	VRFPrivKeyPath := filepath.Join(homeDir, VRFPrivKeyFile)
 	file, err := os.Create(VRFPrivKeyPath)
 	if err != nil {
 		// Handle the error if the file cannot be created
@@ -83,4 +74,55 @@ func SetVRFPrivKey(privateKey string) {
 
 	// Print the stationId
 	fmt.Println(fmt.Sprintf("vrfPrivKey ID: %s", privateKey))
+}
+
+func GetVRFPrivKey(homeDir string) (privateKey string, err error) {
+	VRFPrivKeyPath := filepath.Join(homeDir, VRFPrivKeyFile)
+	file, err := os.Open(VRFPrivKeyPath)
+	if err != nil {
+		// Handle the error if the file cannot be opened
+		return "", fmt.Errorf("error opening vrfPrivKey.txt: %v", err)
+	}
+	defer file.Close()
+	defer file.Close()
+	buf := make([]byte, 1024) // Buffer size of 1024 bytes
+	for {
+		n, err := file.Read(buf)
+		if err == io.EOF {
+			break // End of file reached
+		}
+		if err != nil {
+			// Handle the error if the file cannot be read
+			log.Err(err).Msg("error reading vrfPrivKey.txt")
+			return "", err
+		}
+		privateKey = string(buf[:n])
+	}
+
+	return privateKey, nil
+}
+
+func GetVRFPubKey(homeDir string) (publicKey string, err error) {
+	VRFPubKeyPath := filepath.Join(homeDir, VrfPubKeyFile)
+	file, err := os.Open(VRFPubKeyPath)
+	if err != nil {
+		// Handle the error if the file cannot be opened
+		return "", fmt.Errorf("error opening vrfPubKey.txt: %v", err)
+	}
+	defer file.Close()
+	buf := make([]byte, 1024) // Buffer size of 1024 bytes
+	for {
+		n, err := file.Read(buf)
+		if err == io.EOF {
+			break // End of file reached
+		}
+		if err != nil {
+			// Handle the error if the file cannot be read
+			log.Err(err).Msg("error reading vrfPrivKey.txt")
+			return "", err
+		}
+		publicKey = string(buf[:n])
+	}
+
+	return publicKey, nil
 }

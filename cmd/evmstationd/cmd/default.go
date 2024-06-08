@@ -1,8 +1,9 @@
 package cmd
 
 const (
-	SequencerFileName  = "sequencerConfig.toml"
+	TracksFileName     = "sequencerConfig.toml"
 	EvmStationDir      = "config"
+	TracksDbDir        = "tracksdb"
 	JunctionKeysFolder = "junctionKeys"
 	addressPrefix      = "air"
 	StationType        = "evm" // its a evm based blockchain

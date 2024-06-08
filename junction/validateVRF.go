@@ -3,13 +3,13 @@ package junction
 //
 //import (
 //	"context"
-//	"github.com/airchains-network/decentralized-sequencer/node/shared"
-//	mainTypes "github.com/airchains-network/decentralized-sequencer/types"
+//	"github.com/airchains-network/decentralized-tracks/node/shared"
+//	mainTypes "github.com/airchains-network/decentralized-tracks/types"
 //
 //	"fmt"
-//	"github.com/airchains-network/decentralized-sequencer/junction/types"
-//	logs "github.com/airchains-network/decentralized-sequencer/log"
-//	"github.com/airchains-network/decentralized-sequencer/utilis"
+//	"github.com/airchains-network/decentralized-tracks/junction/types"
+//	logs "github.com/airchains-network/decentralized-tracks/log"
+//	"github.com/airchains-network/decentralized-tracks/utilis"
 //	"github.com/ignite/cli/v28/ignite/pkg/cosmosaccount"
 //	"github.com/ignite/cli/v28/ignite/pkg/cosmosclient"
 //)

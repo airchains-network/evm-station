@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-func CreateStation(junctionClient cosmosclient.Client, keyringDir, accountName, addr string, extraArg junctionTypes.StationArg, stationId string, stationInfo types.StationInfo, verificationKey groth16.VerifyingKey, tracks []string) bool {
+func CreateStation(junctionClient cosmosclient.Client, keyringDir, accountName, addr string, extraArg junctionTypes.StationArg, stationId string, stationInfo types.StationInfo, verificationKey groth16.VerifyingKey, tracks []string, homeDir string) bool {
 
 	registry, err := cosmosaccount.New(cosmosaccount.WithHome(keyringDir))
 	if err != nil {
@@ -88,13 +88,13 @@ func CreateStation(junctionClient cosmosclient.Client, keyringDir, accountName, 
 	vrfPrivateKeyHex := vrfPrivateKey.String()
 	vrfPublicKeyHex := vrfPublicKey.String()
 	if vrfPrivateKeyHex != "" {
-		SetVRFPrivKey(vrfPrivateKeyHex)
+		SetVRFPrivKey(vrfPrivateKeyHex, homeDir)
 	} else {
 		log.NewLogger(os.Stderr).Error("Error saving VRF private key")
 		return false
 	}
 	if vrfPublicKeyHex != "" {
-		SetVRFPubKey(vrfPublicKeyHex)
+		SetVRFPubKey(vrfPublicKeyHex, homeDir)
 	} else {
 		log.NewLogger(os.Stderr).Error("Error saving VRF public key")
 		return false

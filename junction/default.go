@@ -11,5 +11,4 @@ const (
 	Prover                = "Airchains"
 	VrfPubKeyFile         = "vrfPubKey.txt"
 	VRFPrivKeyFile        = "vrfPrivKey.txt"
-	BlockchainFolder      = ".evmstationd"
 )

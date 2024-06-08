@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/airchains-network/evm-station/junction"
-	"github.com/airchains-network/evm-station/sequencer"
 	"github.com/airchains-network/evm-station/shared"
+	"github.com/airchains-network/evm-station/tracks"
 	"github.com/airchains-network/evm-station/types"
 	"github.com/airchains-network/evm-station/zk"
 	junctionTypes "github.com/airchains-network/junction/x/junction/types"
@@ -19,10 +19,10 @@ import (
 )
 
 func ConnectJunctionClient(cmd *cobra.Command, homeDir string) error {
-	// connect to junction if sequencer is initialised
-	seqConfig, err := getSequencerData(cmd)
+	// connect to junction if tracks is initialised
+	seqConfig, err := getTracksData(cmd)
 	if err != nil {
-		log.NewLogger(os.Stderr).Info("Sequencer is not initialised, skipping junction client connection")
+		log.NewLogger(os.Stderr).Info("Tracks is not initialised, skipping junction client connection")
 		return err
 	} else {
 		junctionRpc := seqConfig.JunctionRpc
@@ -37,29 +37,49 @@ func ConnectJunctionClient(cmd *cobra.Command, homeDir string) error {
 	return nil
 }
 
-var sequencerCommands = func() *cobra.Command {
+var TracksCommands = func() *cobra.Command {
 
-	sequencerCmd := &cobra.Command{
-		Use:   "sequencer",
-		Short: "Interact with the sequencer operations",
+	TracksCmd := &cobra.Command{
+		Use:   "tracks",
+		Short: "Interact with the tracks operations",
 	}
 
 	// Add commands
-	// init sequencer command
-	InitSequencerCmd.Flags().String("daRpc", "", "Description of DA RPC URL")
-	InitSequencerCmd.Flags().String("daKey", "", "Description of DA key")
-	InitSequencerCmd.Flags().String("daType", "", "Description of daType")
-	InitSequencerCmd.Flags().String("junctionRpc", "", "Description of Junction RPC URL")
-	InitSequencerCmd.Flags().String("junctionKeyName", "", "Description of Junction Key Name")
-	InitSequencerCmd.MarkFlagRequired("daRpc")
-	InitSequencerCmd.MarkFlagRequired("daKey")
-	InitSequencerCmd.MarkFlagRequired("daType")
-	InitSequencerCmd.MarkFlagRequired("junctionRpc")
-	InitSequencerCmd.MarkFlagRequired("junctionKeyName")
-	sequencerCmd.AddCommand(InitSequencerCmd)
+	// init tracks command
+	InitTracksCmd.Flags().String("daRpc", "", "Description of DA RPC URL")
+	InitTracksCmd.Flags().String("daKey", "", "Description of DA key")
+	InitTracksCmd.Flags().String("daType", "", "Description of daType")
+	InitTracksCmd.Flags().String("junctionRpc", "", "Description of Junction RPC URL")
+	InitTracksCmd.Flags().String("junctionKeyName", "", "Description of Junction Key Name")
+	err := InitTracksCmd.MarkFlagRequired("daRpc")
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error in marking flag required", "flag", "daRpc", "error", err)
+		return nil
+	}
+	err = InitTracksCmd.MarkFlagRequired("daKey")
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error in marking flag required", "flag", "daKey", "error", err)
+		return nil
+	}
+	err = InitTracksCmd.MarkFlagRequired("daType")
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error in marking flag required", "flag", "daType", "error", err)
+		return nil
+	}
+	err = InitTracksCmd.MarkFlagRequired("junctionRpc")
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error in marking flag required", "flag", "junctionRpc", "error", err)
+		return nil
+	}
+	err = InitTracksCmd.MarkFlagRequired("junctionKeyName")
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error in marking flag required", "flag", "junctionKeyName", "error", err)
+		return nil
+	}
+	TracksCmd.AddCommand(InitTracksCmd)
 
-	// get sequencer details: no extra flags required
-	sequencerCmd.AddCommand(sequencerDetailsCmd)
+	// get tracks details: no extra flags required
+	TracksCmd.AddCommand(TracksDetailsCmd)
 
 	// Main command
 	balanceCmd := &cobra.Command{
@@ -71,8 +91,8 @@ var sequencerCommands = func() *cobra.Command {
 	JunctionBalanceCmd := &cobra.Command{
 		Use:   "junction",
 		Short: "Check balance of a junction account",
-		Run: func(sequencerCmd *cobra.Command, args []string) {
-			CheckBalanceJunction(sequencerCmd) // Pass jClient here
+		Run: func(TracksCmd *cobra.Command, args []string) {
+			CheckBalanceJunction(TracksCmd) // Pass jClient here
 		},
 	}
 
@@ -90,7 +110,7 @@ var sequencerCommands = func() *cobra.Command {
 	balanceCmd.AddCommand(DaCmd)
 
 	// Add the main command to the root command
-	sequencerCmd.AddCommand(balanceCmd)
+	TracksCmd.AddCommand(balanceCmd)
 
 	// create station
 	CreateStationCmd := &cobra.Command{
@@ -100,22 +120,26 @@ var sequencerCommands = func() *cobra.Command {
 	}
 	CreateStationCmd.Flags().String("info", "", "Station information")
 	CreateStationCmd.Flags().StringSlice("tracks", []string{}, "Array for tracks for new station")
-	CreateStationCmd.MarkFlagRequired("info")
-	sequencerCmd.AddCommand(CreateStationCmd)
-
-	// start sequencer. take data from 26657
-	StartSequencerCmd := &cobra.Command{
-		Use:   "start",
-		Short: "Start the sequencer",
-		Run:   StartSequencer,
+	err = CreateStationCmd.MarkFlagRequired("info")
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error in marking flag required", "flag", "info", "error", err)
+		return nil
 	}
-	sequencerCmd.AddCommand(StartSequencerCmd)
+	TracksCmd.AddCommand(CreateStationCmd)
 
-	return sequencerCmd
+	// start tracks. take data from 26657
+	StartTracksCmd := &cobra.Command{
+		Use:   "start",
+		Short: "Start the tracks",
+		Run:   StartTracks,
+	}
+	TracksCmd.AddCommand(StartTracksCmd)
+
+	return TracksCmd
 }
 
-func InitSequencerConfigsCmd(cmd *cobra.Command) (*types.SequencerConfigs, error) {
-	var configs types.SequencerConfigs
+func InitTracksConfigsCmd(cmd *cobra.Command) (*types.TracksConfigs, error) {
+	var configs types.TracksConfigs
 	var err error
 
 	configs.DaRPC, err = cmd.Flags().GetString("daRpc")
@@ -148,9 +172,9 @@ func InitSequencerConfigsCmd(cmd *cobra.Command) (*types.SequencerConfigs, error
 	return &configs, nil
 }
 
-var InitSequencerCmd = &cobra.Command{
+var InitTracksCmd = &cobra.Command{
 	Use:   "init",
-	Short: "initialize the sequencer nodes",
+	Short: "initialize the tracks nodes",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		clientCtx, err := client.GetClientQueryContext(cmd)
@@ -165,7 +189,7 @@ var InitSequencerCmd = &cobra.Command{
 			return
 		}
 
-		configs, err := InitSequencerConfigsCmd(cmd)
+		configs, err := InitTracksConfigsCmd(cmd)
 		if err != nil {
 			log.NewLogger(os.Stderr).Warn(err.Error())
 			return
@@ -190,29 +214,34 @@ var InitSequencerCmd = &cobra.Command{
 		}
 
 		tracksDir := filepath.Join(homeDir, EvmStationDir)
-		sFile := filepath.Join(tracksDir, SequencerFileName)
+		sFile := filepath.Join(tracksDir, TracksFileName)
 		file, err := os.Create(sFile)
 		if err != nil {
 			log.NewLogger(os.Stderr).Error("Error creating file", "err", err)
 			return
 		}
-		defer file.Close()
+		defer func(file *os.File) {
+			err := file.Close()
+			if err != nil {
+				log.NewLogger(os.Stderr).Error("Error closing file", "err", err)
+			}
+		}(file)
 
 		// Use the TOML encoder to write directly to the file
 		if err := toml.NewEncoder(file).Encode(configs); err != nil {
 			log.NewLogger(os.Stderr).Error("Error encoding configuration", "err", err)
 			return
 		} else {
-			log.NewLogger(os.Stderr).Info("Sequencer configuration saved successfully", "Path", sFile)
+			log.NewLogger(os.Stderr).Info("Tracks configuration saved successfully", "Path", sFile)
 			return
 		}
 		// create proving and verification key
 	},
 }
 
-// get sequencer details
-// getSequencerData function gets the sequencer configuration data
-func getSequencerData(cmd *cobra.Command) (*types.SequencerConfigs, error) {
+// get tracks details
+// getTracksData function gets the tracks configuration data
+func getTracksData(cmd *cobra.Command) (*types.TracksConfigs, error) {
 
 	clientCtx, err := client.GetClientQueryContext(cmd)
 	if err != nil {
@@ -225,48 +254,53 @@ func getSequencerData(cmd *cobra.Command) (*types.SequencerConfigs, error) {
 	}
 
 	tracksDir := filepath.Join(homeDir, EvmStationDir)
-	sFile := filepath.Join(tracksDir, SequencerFileName)
+	sFile := filepath.Join(tracksDir, TracksFileName)
 
 	if _, err = os.Stat(sFile); os.IsNotExist(err) {
-		return nil, fmt.Errorf("sequencer configuration file does not exist")
+		return nil, fmt.Errorf("tracks configuration file does not exist")
 	} else {
 		f, err := os.Open(sFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open file: %w", err)
 		}
-		defer f.Close()
+		defer func(f *os.File) {
+			err := f.Close()
+			if err != nil {
+				log.NewLogger(os.Stderr).Error("Error closing file", "err", err)
+			}
+		}(f)
 
-		var configs types.SequencerConfigs
+		var configs types.TracksConfigs
 
 		if _, err = toml.DecodeReader(f, &configs); err != nil {
-			return nil, fmt.Errorf("error decoding sequencer configuration file: %w", err)
+			return nil, fmt.Errorf("error decoding tracks configuration file: %w", err)
 		} else {
 			return &configs, nil
 		}
 	}
 }
 
-func GetSequencerDetails(cmd *cobra.Command, args []string) {
+func GetTracksDetails(cmd *cobra.Command, args []string) {
 
-	configs, err := getSequencerData(cmd)
+	configs, err := getTracksData(cmd)
 	if err != nil {
 		log.NewLogger(os.Stderr).Error(err.Error())
 		return
 	}
 
-	log.NewLogger(os.Stderr).Info("Sequencer configuration Data")
+	log.NewLogger(os.Stderr).Info("Tracks configuration Data")
 	value := reflect.ValueOf(*configs) // Dereference the pointer
 	var field reflect.StructField
 	for i := 0; i < value.NumField(); i++ {
 		field = value.Type().Field(i)
-		log.NewLogger(os.Stderr).Info("SequencerInfo", field.Name, fmt.Sprint(value.Field(i).Interface()))
+		log.NewLogger(os.Stderr).Info("TracksInfo", field.Name, fmt.Sprint(value.Field(i).Interface()))
 	}
 }
 
-var sequencerDetailsCmd = &cobra.Command{
+var TracksDetailsCmd = &cobra.Command{
 	Use:   "details",
-	Short: "Get the details of the sequencer",
-	Run:   GetSequencerDetails,
+	Short: "Get the details of the tracks",
+	Run:   GetTracksDetails,
 }
 
 func CheckBalanceJunction(cmd *cobra.Command) {
@@ -289,7 +323,7 @@ func CheckBalanceJunction(cmd *cobra.Command) {
 		return
 	}
 
-	configs, err := getSequencerData(cmd)
+	configs, err := getTracksData(cmd)
 	if err != nil {
 		log.NewLogger(os.Stderr).Error(err.Error())
 		return
@@ -324,7 +358,7 @@ func CheckBalanceJunction(cmd *cobra.Command) {
 
 func CreateStationOnJunction(cmd *cobra.Command, args []string) {
 
-	sequencerConfigs, err := getSequencerData(cmd)
+	TracksConfigs, err := getTracksData(cmd)
 	if err != nil {
 		log.NewLogger(os.Stderr).Error(err.Error())
 		return
@@ -349,7 +383,7 @@ func CreateStationOnJunction(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	accountName := sequencerConfigs.JunctionKeyName
+	accountName := TracksConfigs.JunctionKeyName
 	keyringDir := filepath.Join(homeDir, JunctionKeysFolder)
 	addr, err := junction.CheckIfAccountExists(accountName, keyringDir)
 	if err != nil {
@@ -393,23 +427,23 @@ func CreateStationOnJunction(cmd *cobra.Command, args []string) {
 
 	extraArg := junctionTypes.StationArg{
 		TrackType: TrackType,
-		DaType:    sequencerConfigs.DaType,
+		DaType:    TracksConfigs.DaType,
 		Prover:    Prover,
 	}
 
 	stationId := uuid.New().String()
-	success := junction.CreateStation(*jClient, keyringDir, accountName, addr, extraArg, stationId, stationInfo, verificationKey, tracks)
+	success := junction.CreateStation(*jClient, keyringDir, accountName, addr, extraArg, stationId, stationInfo, verificationKey, tracks, homeDir)
 	if !success {
 		log.NewLogger(os.Stderr).Error("Failed to create station")
 		return
 	}
 
 	log.NewLogger(os.Stderr).Info("Successfully created station")
-	// save stationId in sequencer configuration
-	sequencerConfigs.StationId = stationId
+	// save stationId in tracks configuration
+	TracksConfigs.StationId = stationId
 
 	tracksDir := filepath.Join(homeDir, EvmStationDir)
-	sFile := filepath.Join(tracksDir, SequencerFileName)
+	sFile := filepath.Join(tracksDir, TracksFileName)
 	log.NewLogger(os.Stderr).Info("Writing configuration", "Path", sFile)
 	file, err := os.Create(sFile)
 	if err != nil {
@@ -419,23 +453,39 @@ func CreateStationOnJunction(cmd *cobra.Command, args []string) {
 	defer file.Close()
 
 	// Use the TOML encoder to write directly to the file
-	if err := toml.NewEncoder(file).Encode(sequencerConfigs); err != nil {
+	if err := toml.NewEncoder(file).Encode(TracksConfigs); err != nil {
 		log.NewLogger(os.Stderr).Error("Error encoding configuration", "err", err)
 		return
 	} else {
-		log.NewLogger(os.Stderr).Info("Included Station Id in Sequencer configuration successfully.")
+		log.NewLogger(os.Stderr).Info("Included Station Id in Tracks configuration successfully.")
 		return
 	}
 }
 
-func StartSequencer(cmd *cobra.Command, args []string) {
+func StartTracks(cmd *cobra.Command, args []string) {
 
-	sequencerConfigs, err := getSequencerData(cmd)
-
+	clientCtx, err := client.GetClientQueryContext(cmd)
 	if err != nil {
 		log.NewLogger(os.Stderr).Error(err.Error())
 		return
 	}
 
-	sequencer.Start(sequencerConfigs)
+	homeDir := clientCtx.HomeDir
+	if homeDir == "" {
+		log.NewLogger(os.Stderr).Error("Failed to get user home directory")
+		return
+	}
+	TracksDir := filepath.Join(homeDir, TracksDbDir)
+
+	TracksConfigs, err := getTracksData(cmd)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error(err.Error())
+		return
+	}
+	if TracksConfigs.StationId == "" {
+		log.NewLogger(os.Stderr).Error("create station before stating sequencer")
+		return
+	}
+
+	tracks.Start(TracksConfigs, TracksDir, homeDir)
 }

@@ -119,7 +119,7 @@ func initRootCmd(
 		confixcmd.ConfigCommand(),
 		pruning.Cmd(newApp, testapp.DefaultNodeHome),
 		snapshot.Cmd(newApp),
-		sequencerCommands(), // add sequencer commands
+		TracksCommands(), // add tracks commands
 	)
 
 	server.AddCommands(rootCmd, testapp.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
@@ -260,7 +260,12 @@ var tempDir = func() string {
 	if err != nil {
 		dir = testapp.DefaultNodeHome
 	}
-	defer os.RemoveAll(dir)
+	defer func(path string) {
+		err := os.RemoveAll(path)
+		if err != nil {
+			panic(err)
+		}
+	}(dir)
 
 	return dir
 }

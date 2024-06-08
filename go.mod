@@ -22,7 +22,7 @@ replace (
 )
 
 require (
-	cosmossdk.io/api v0.7.4
+	cosmossdk.io/api v0.7.5
 	cosmossdk.io/client/v2 v2.0.0-beta.1
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.11.0
@@ -32,11 +32,11 @@ require (
 	cosmossdk.io/store v1.1.0
 	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/evidence v0.1.0
-	cosmossdk.io/x/tx v0.13.2 // indirect
+	cosmossdk.io/x/tx v0.13.3 // indirect
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/berachain/polaris/cosmos v0.1.2-alpha
 	github.com/berachain/polaris/eth v0.1.2-alpha
-	github.com/cometbft/cometbft v0.38.6
+	github.com/cometbft/cometbft v0.38.7
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-sdk v0.50.6
 	github.com/onsi/ginkgo/v2 v2.13.2
@@ -54,6 +54,8 @@ require (
 	github.com/cosmos/ibc-go/v8 v8.1.1
 	github.com/google/uuid v1.6.0
 	github.com/ignite/cli/v28 v28.4.0
+	github.com/rs/zerolog v1.32.0
+	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
 	go.dedis.ch/kyber/v3 v3.1.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -247,7 +249,6 @@ require (
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/rs/cors v1.10.1 // indirect
-	github.com/rs/zerolog v1.32.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
@@ -261,7 +262,6 @@ require (
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
-	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
 	github.com/tidwall/btree v1.7.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect

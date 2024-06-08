@@ -34,30 +34,31 @@ This command will delete old data at `~/.evmstation` and `./build` directories. 
 For Testing: `Mock DA`
 ```shell
   HOMEDIR=$HOME/.evmstationd
-  build/bin/evmstationd sequencer init --home "$HOMEDIR" --daRpc "mock-rpc" --daKey "mockKey" --daType "mock" --junctionRpc "http://0.0.0.0:26657" --junctionKeyName j-key
+  build/bin/evmstationd tracks init --home "$HOMEDIR" --daRpc "mock-rpc" --daKey "mockKey" --daType "mock" --junctionRpc "http://0.0.0.0:26657" --junctionKeyName j-key
 ```
 Alternative: `For Eigen DA`
 ```shell 
   HOMEDIR=$HOME/.evmstationd
-build/bin/evmstationd sequencer init --home "$HOMEDIR" --daRpc "disperser-holesky.eigenda.xyz" --daKey "9430d5ad8ea52329be63afe66a8c8d5e0ba75bf0de0cbd41aa30fadf5f575ec24cff557777e20a0578ec4fedc66274c37fe5d25ed4c4a09cb73b1ddc15349bb4" --daType "eigen" --junctionRpc "http://0.0.0.0:26657" --junctionKeyName j-key
+build/bin/evmstationd tracks init --home "$HOMEDIR" --daRpc "disperser-holesky.eigenda.xyz" --daKey "9430d5ad8ea52329be63afe66a8c8d5e0ba75bf0de0cbd41aa30fadf5f575ec24cff557777e20a0578ec4fedc66274c37fe5d25ed4c4a09cb73b1ddc15349bb4" --daType "eigen" --junctionRpc "http://0.0.0.0:26657" --junctionKeyName j-key
 ```
 
 ### Get Details of Sequencer, Balance of Junction, and DA
 ```shell
-  build/bin/evmstationd sequencer details
-  build/bin/evmstationd sequencer balance junction
-  build/bin/evmstationd sequencer balance da  # currently not create or implimented
+  build/bin/evmstationd tracks details
+  build/bin/evmstationd tracks balance junction
+  build/bin/evmstationd tracks balance da
 ```
+- Fund tracks account 
 
 ### Create Station
 To create a station in Junction, run the following command:
 ```bash
-  build/bin/evmstationd sequencer create-station --info "some info" 
+  build/bin/evmstationd tracks create-station --info "some info"
 ```
 By default, the `--track` parameter uses the address created during sequencer initialization in above steps.
 Alternatively, if you want to specify a different or multiple track address, use the following command format:
 ```bash
-build/bin/evmstationd sequencer create-station --info "some info" --tracks ["<track_address-1>","<track_address-2>"]
+  build/bin/evmstationd tracks create-station --info "some info" --tracks ["<track_address-1>","<track_address-2>"]
 ```
 
 ### Start the node
@@ -65,6 +66,19 @@ To start the node, run the following command:
 ```bash
   /bin/bash ./scripts/local-start.sh
 ```
+
+### Start the Sequencer 
+To start the tracks, run the following command:
+```bash
+  build/bin/evmstationd tracks start
+```
+### Testing 
+To test the node, run the following command:
+```bash
+  go run ./cmd/evmstationd/main.go tracks start
+```
+### Setup Track
+
 
 Make sure to replace `<track_address>` with the appropriate address, including your own address created in the previous steps.
 **Note:** Ensure you use the correct track address, including yours created in the previous steps.
