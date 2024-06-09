@@ -12,6 +12,7 @@ import (
 
 var JunctionClient *cosmosclient.Client
 var JunctionConnected bool
+var ctx context.Context
 
 type JunctionConfigStruct struct {
 	RPC           string
@@ -41,7 +42,7 @@ func SetJunctionClient(j *JunctionConfigStruct) {
 		cosmosclient.WithFees(gasFees),
 	}
 
-	ctx := context.Background()
+	ctx = context.Background()
 	client, err := cosmosclient.New(ctx, options...)
 
 	if err != nil {
@@ -56,4 +57,7 @@ func SetJunctionClient(j *JunctionConfigStruct) {
 
 func GetJunctionClient() (*cosmosclient.Client, bool) {
 	return JunctionClient, JunctionConnected
+}
+func GetContext() context.Context {
+	return ctx
 }

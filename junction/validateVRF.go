@@ -1,83 +1,65 @@
 package junction
 
-//
-//import (
-//	"context"
-//	"github.com/airchains-network/decentralized-tracks/node/shared"
-//	mainTypes "github.com/airchains-network/decentralized-tracks/types"
-//
-//	"fmt"
-//	"github.com/airchains-network/decentralized-tracks/junction/types"
-//	logs "github.com/airchains-network/decentralized-tracks/log"
-//	"github.com/airchains-network/decentralized-tracks/utilis"
-//	"github.com/ignite/cli/v28/ignite/pkg/cosmosaccount"
-//	"github.com/ignite/cli/v28/ignite/pkg/cosmosclient"
-//)
-//
-//func ValidateVRF(addr string) bool {
-//	jsonRpc, stationId, accountPath, accountName, addressPrefix, tracks, err := GetJunctionDetails()
-//	if err != nil {
-//		logs.Log.Error("can not get junctionDetails.json data: " + err.Error())
-//		return false
-//	}
-//	upperBond := uint64(len(tracks))
-//
-//	registry, err := cosmosaccount.New(cosmosaccount.WithHome(accountPath))
-//	if err != nil {
-//		logs.Log.Error(fmt.Sprintf("Error creating account registry: %v", err))
-//		return false
-//	}
-//
-//	rc := mainTypes.RequestCommitmentV2Plus{
-//		BlockNum:         1,
-//		StationId:        stationId,
-//		UpperBound:       upperBond,
-//		RequesterAddress: addr,
-//	}
-//
-//	serializedRC, err := SerializeRequestCommitmentV2Plus(rc)
-//	if err != nil {
-//		logs.Log.Error(err.Error())
-//		return false
-//	}
-//
-//	newTempAccount, err := registry.GetByName(accountName)
-//	if err != nil {
-//		logs.Log.Error(fmt.Sprintf("Error getting account: %v", err))
-//		return false
-//	}
-//
-//	newTempAddr, err := newTempAccount.Address(addressPrefix)
-//	if err != nil {
-//		logs.Log.Error(fmt.Sprintf("Error getting address: %v", err))
-//		return false
-//	}
-//
-//	ctx := context.Background()
-//	gas := utilis.GenerateRandomWithFavour(510, 1000, [2]int{520, 700}, 0.7)
-//	gasFees := fmt.Sprintf("%damf", gas)
-//	logs.Log.Warn(fmt.Sprintf("Gas Fees Used for validate VRF transaction is: %s\n", gasFees))
-//	accountClient, err := cosmosclient.New(ctx, cosmosclient.WithAddressPrefix(addressPrefix), cosmosclient.WithNodeAddress(jsonRpc), cosmosclient.WithHome(accountPath), cosmosclient.WithGas("auto"), cosmosclient.WithFees(gasFees))
-//	if err != nil {
-//		logs.Log.Error("Error creating account client")
-//		return false
-//	}
-//
-//	podNumber := shared.GetPodState().LatestPodHeight
-//	msg := types.MsgValidateVrf{
-//		Creator:      newTempAddr,
-//		StationId:    stationId,
-//		PodNumber:    podNumber,
-//		SerializedRc: serializedRC,
-//	}
-//
-//	txRes, errTxRes := accountClient.BroadcastTx(ctx, newTempAccount, &msg)
-//	if errTxRes != nil {
-//		logs.Log.Error("error in transaction" + errTxRes.Error())
-//		return false
-//	}
-//
-//	logs.Log.Info("Transaction Hash For VRF Validation: " + txRes.TxHash)
-//
-//	return true
-//}
+import (
+	"context"
+	"cosmossdk.io/log"
+	"github.com/airchains-network/evm-station/types"
+	junctionTypes "github.com/airchains-network/junction/x/junction/types"
+	"github.com/ignite/cli/v28/ignite/pkg/cosmosaccount"
+	"github.com/ignite/cli/v28/ignite/pkg/cosmosclient"
+	"os"
+	"strings"
+	"time"
+)
+
+func ValidateVRF(podNumber uint64, ctx context.Context, jClient cosmosclient.Client, account cosmosaccount.Account, addr, stationId, privateKeyStr, publicKey string) (success bool) {
+	tracks := []string{addr}
+	upperBond := uint64(len(tracks))
+	rc := types.RequestCommitmentV2Plus{
+		BlockNum:         1,
+		StationId:        stationId,
+		UpperBound:       upperBond,
+		RequesterAddress: addr,
+	}
+	serializedRC, err := SerializeRequestCommitmentV2Plus(rc)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error(err.Error())
+		return false
+	}
+	msg := junctionTypes.MsgValidateVrf{
+		Creator:      addr,
+		StationId:    stationId,
+		PodNumber:    podNumber,
+		SerializedRc: serializedRC,
+	}
+	// check if this pod is behind the current pod at switchyard or not
+	latestVerifiedBatch := QueryLatestVerifiedBatch(jClient, ctx, stationId)
+	if latestVerifiedBatch+1 != podNumber {
+		log.NewLogger(os.Stderr).Debug("Incorrect pod number")
+		if latestVerifiedBatch+1 < podNumber {
+			log.NewLogger(os.Stderr).Debug("Rollback required")
+			return false
+		} else if latestVerifiedBatch+1 > podNumber {
+			log.NewLogger(os.Stderr).Debug("Pod number at Switchyard is ahead of the current pod number")
+			return true
+		}
+	}
+
+	for {
+		txRes, errTxRes := jClient.BroadcastTx(ctx, account, &msg)
+		if errTxRes != nil {
+			errStr := errTxRes.Error()
+			if strings.Contains(errStr, VRFValidatedErrorContains) {
+				log.NewLogger(os.Stderr).Debug("VRF already verified for this pod number")
+				return true
+			} else {
+				log.NewLogger(os.Stderr).Error("Error in ValidateVRF transaction")
+				log.NewLogger(os.Stderr).Debug("Retrying ValidateVRF transaction after 10 seconds..")
+				time.Sleep(10 * time.Second)
+			}
+		} else {
+			log.NewLogger(os.Stderr).Info("VRF Validated Successfully", "txHash", txRes.TxHash)
+			return true
+		}
+	}
+}

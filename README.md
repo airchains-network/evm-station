@@ -34,7 +34,7 @@ This command will delete old data at `~/.evmstation` and `./build` directories. 
 For Testing: `Mock DA`
 ```shell
   HOMEDIR=$HOME/.evmstationd
-  build/bin/evmstationd tracks init --home "$HOMEDIR" --daRpc "mock-rpc" --daKey "mockKey" --daType "mock" --junctionRpc "http://0.0.0.0:26657" --junctionKeyName j-key
+  build/bin/evmstationd tracks init --home "$HOMEDIR" --daRpc "mock-rpc" --daKey "mockKey" --daType "mock" --junctionRpc "https://junction-testnet-rpc.synergynodes.com:443" --junctionKeyName j-key
 ```
 Alternative: `For Eigen DA`
 ```shell 

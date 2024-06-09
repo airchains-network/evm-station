@@ -1,11 +1,16 @@
 package junction
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
+	"github.com/airchains-network/evm-station/types"
 	"github.com/rs/zerolog/log"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/group/edwards25519"
 	"io"
+	"math/big"
 	"os"
 	"path/filepath"
 )
@@ -125,4 +130,64 @@ func GetVRFPubKey(homeDir string) (publicKey string, err error) {
 	}
 
 	return publicKey, nil
+}
+
+func SerializeRequestCommitmentV2Plus(rc types.RequestCommitmentV2Plus) ([]byte, error) {
+	var buf bytes.Buffer
+
+	// Encode the blockNum
+	err := binary.Write(&buf, binary.BigEndian, rc.BlockNum)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode blockNum: %w", err)
+	}
+
+	// Encode the stationId as a fixed size or prefixed with its length
+	// Here, we choose to prefix with length for simplicity
+	if err := binary.Write(&buf, binary.BigEndian, uint64(len(rc.StationId))); err != nil {
+		return nil, fmt.Errorf("failed to encode stationId length: %w", err)
+	}
+	buf.WriteString(rc.StationId)
+
+	// Encode the upperBound
+	err = binary.Write(&buf, binary.BigEndian, rc.UpperBound)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode upperBound: %w", err)
+	}
+
+	// Encode the requesterAddress as a fixed size or prefixed with its length
+	if err := binary.Write(&buf, binary.BigEndian, uint64(len(rc.RequesterAddress))); err != nil {
+		return nil, fmt.Errorf("failed to encode requesterAddress length: %w", err)
+	}
+	buf.WriteString(rc.RequesterAddress)
+
+	// Encode the extraArgs
+	//buf.WriteByte(rc.ExtraArgs)
+
+	return buf.Bytes(), nil
+}
+func GenerateVRFProof(suite kyber.Group, privateKey kyber.Scalar, data []byte, nonce int64) ([]byte, []byte, error) {
+	// Convert nonce to a deterministic scalar
+	nonceBytes := big.NewInt(nonce).Bytes()
+	nonceScalar := suite.Scalar().SetBytes(nonceBytes)
+
+	// Generate proof like in a Schnorr signature: R = g^k, s = k + e*x
+	R := suite.Point().Mul(nonceScalar, nil) // R = g^k
+	hash := sha256.New()
+	rBytes, _ := R.MarshalBinary()
+	hash.Write(rBytes)
+	hash.Write(data)
+	e := suite.Scalar().SetBytes(hash.Sum(nil))                             // e = H(R||data)
+	s := suite.Scalar().Add(nonceScalar, suite.Scalar().Mul(e, privateKey)) // s = k + e*x
+
+	// The VRF output (pseudo-random value) is hash of R combined with data
+	vrfHash := sha256.New()
+	vrfHash.Write(rBytes)         // Incorporate R
+	vrfHash.Write(data)           // Incorporate input data
+	vrfOutput := vrfHash.Sum(nil) // This is the deterministic "random" output
+
+	// Serialize R and s into the proof
+	sBytes, _ := s.MarshalBinary()
+	proof := append(rBytes, sBytes...)
+
+	return proof, vrfOutput, nil
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/airchains-network/evm-station/junction"
 	"github.com/airchains-network/evm-station/shared"
-	"github.com/airchains-network/evm-station/tracks"
+	"github.com/airchains-network/evm-station/station"
 	"github.com/airchains-network/evm-station/types"
 	"github.com/airchains-network/evm-station/zk"
 	junctionTypes "github.com/airchains-network/junction/x/junction/types"
@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"time"
 )
 
 func ConnectJunctionClient(cmd *cobra.Command, homeDir string) error {
@@ -475,7 +476,14 @@ func StartTracks(cmd *cobra.Command, args []string) {
 		log.NewLogger(os.Stderr).Error("Failed to get user home directory")
 		return
 	}
-	TracksDir := filepath.Join(homeDir, TracksDbDir)
+	//TracksDir := filepath.Join(homeDir, TracksDbDir)
+
+	// junction client connection
+	err = ConnectJunctionClient(cmd, homeDir)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error(err.Error())
+		return
+	}
 
 	TracksConfigs, err := getTracksData(cmd)
 	if err != nil {
@@ -487,5 +495,134 @@ func StartTracks(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	tracks.Start(TracksConfigs, TracksDir, homeDir)
+	//// Initialise or Check database for Tracks
+	//success := tracksdb.ConfigDb(TracksDir)
+	//if !success {
+	//	log.NewLogger(os.Stderr).Error("Failed to initialize Tracks Database")
+	//	return
+	//}
+
+	// get VRF private and public keys
+	VRFPrivateKeyStr, err := junction.GetVRFPrivKey(homeDir)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Failed to get VRF private key")
+		return
+	}
+	if VRFPrivateKeyStr == "" {
+		log.NewLogger(os.Stderr).Error("VRF private key is empty")
+		return
+	}
+
+	VRFPublicKeyStr, err := junction.GetVRFPubKey(homeDir)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Failed to get VRF public key")
+		return
+	}
+	if VRFPublicKeyStr == "" {
+		log.NewLogger(os.Stderr).Error("VRF public key is empty")
+		return
+	}
+
+	// Start remote signer (must start before node if running builtin).
+	log.NewLogger(os.Stderr).Info("Starting Tracks", "ChainId", TracksConfigs.StationId, "JunctionRpc", TracksConfigs.JunctionRpc, "JunctionKeyName", TracksConfigs.JunctionKeyName)
+
+	stationId := TracksConfigs.StationId
+	accountName := TracksConfigs.JunctionKeyName
+	keyringDir := filepath.Join(homeDir, JunctionKeysFolder)
+	addr, err := junction.CheckIfAccountExists(accountName, keyringDir)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error in getting account address: " + err.Error())
+		return
+	}
+	account, err := junction.GetCosmosAccount(accountName, keyringDir)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error in getting account: " + err.Error())
+		return
+	}
+
+	jClient, jConnected := shared.GetJunctionClient()
+	if !jConnected {
+		log.NewLogger(os.Stderr).Error("Junction client not connected")
+		return
+	}
+
+	haveBalance, value, err := junction.CheckBalance(jClient, addr)
+	if err != nil {
+		log.NewLogger(os.Stderr).Error("Error in checking balance of"+addr, "Error", err.Error())
+		return
+	} else if !haveBalance {
+		log.NewLogger(os.Stderr).Warn("Not have balance in " + addr)
+		return
+	}
+	log.NewLogger(os.Stderr).Info("Junction Account Balance (in amf):", "account", addr, "balance", value)
+
+	ctx := shared.GetContext()
+	for {
+		latestPodInStation := station.QueryLatestPodNumber() // latest pod number"
+		log.NewLogger(os.Stderr).Info("latest pod on Station", "podNumber", latestPodInStation)
+
+		latestVerifiedPodInJunction := junction.QueryLatestVerifiedBatch(*jClient, ctx, stationId)
+		log.NewLogger(os.Stderr).Info("latest verified pod on junction", "podNumber", latestVerifiedPodInJunction)
+		podNumberToProcess := latestVerifiedPodInJunction + 1
+
+		if latestPodInStation == 0 {
+			log.NewLogger(os.Stderr).Debug("No Pods at all on Station. Waiting for new pods", "waitTime", "10 seconds")
+			time.Sleep(10 * time.Second)
+		} else if latestPodInStation >= podNumberToProcess {
+			log.NewLogger(os.Stderr).Info("Processing New Pod", "podNumber", podNumberToProcess)
+
+			log.NewLogger(os.Stderr).Info("Processing InitVRf transaction")
+			success := junction.InitVRF(podNumberToProcess, ctx, *jClient, account, addr, stationId, VRFPrivateKeyStr, VRFPublicKeyStr)
+			if success == false {
+				log.NewLogger(os.Stderr).Error("Failed to Init VRF due to above error")
+				return
+			}
+
+			log.NewLogger(os.Stderr).Info("Processing ValidateVRF transaction")
+			success = junction.ValidateVRF(podNumberToProcess, ctx, *jClient, account, addr, stationId, VRFPrivateKeyStr, VRFPublicKeyStr)
+			if success == false {
+				log.NewLogger(os.Stderr).Error("Failed to Validate VRF due to above error")
+				return
+			}
+
+			// Query the pod from Station
+			pod, err := station.QueryPodNumber(podNumberToProcess)
+			if err != nil {
+				log.NewLogger(os.Stderr).Error("Failed to get pod from Station", "podNumber", podNumberToProcess, "error", err)
+				return
+			}
+
+			var previousMerkleRootHash string
+			if podNumberToProcess > 1 {
+				// Query the pod from Station
+				previousPodNumber := podNumberToProcess - 1
+				previousPod, err := station.QueryPodNumber(previousPodNumber)
+				if err != nil {
+					log.NewLogger(os.Stderr).Error("Failed to get pod from Station", "podNumber", previousPodNumber, "error", err)
+					return
+				}
+				previousMerkleRootHash = previousPod.MerkleRootHash
+			} else {
+				previousMerkleRootHash = ""
+			}
+
+			log.NewLogger(os.Stderr).Info("Processing SubmitPod transaction")
+			success = junction.SubmitPod(podNumberToProcess, ctx, *jClient, account, addr, stationId, previousMerkleRootHash, pod.MerkleRootHash, pod.Witness, pod.Proof)
+			if success == false {
+				log.NewLogger(os.Stderr).Error("Failed to Submit Pod due to above error")
+				return
+			}
+
+			log.NewLogger(os.Stderr).Info("Processing VerifyPod transaction")
+			success = junction.VerifyPod(podNumberToProcess, ctx, *jClient, account, addr, stationId, previousMerkleRootHash, pod.MerkleRootHash, pod.Proof)
+			if success == false {
+				log.NewLogger(os.Stderr).Error("Failed to Verify Pod due to above error")
+				return
+			}
+		} else {
+			log.NewLogger(os.Stderr).Debug("No New Pods on Station. Waiting for new pods", "waitTime", "10 seconds")
+			time.Sleep(10 * time.Second)
+		}
+	}
+
 }

@@ -1,95 +1,56 @@
 package junction
 
-//
-//import (
-//	"context"
-//	"fmt"
-//	"github.com/airchains-network/decentralized-tracks/junction/types"
-//	logs "github.com/airchains-network/decentralized-tracks/log"
-//	"github.com/airchains-network/decentralized-tracks/node/shared"
-//	"github.com/airchains-network/decentralized-tracks/utilis"
-//	"github.com/ignite/cli/v28/ignite/pkg/cosmosaccount"
-//	"github.com/ignite/cli/v28/ignite/pkg/cosmosclient"
-//	"time"
-//)
-//
-//func SubmitCurrentPod() (success bool) {
-//	jsonRpc, stationId, accountPath, accountName, addressPrefix, tracks, err := GetJunctionDetails()
-//	_ = tracks
-//	if err != nil {
-//		logs.Log.Error("can not get junctionDetails.json data: " + err.Error())
-//		return false
-//	}
-//
-//	podNumber := shared.GetPodState().LatestPodHeight
-//
-//	// get latest pod hash
-//	LatestPodStatusHash := shared.GetPodState().LatestPodHash
-//	var LatestPodStatusHashStr string
-//	LatestPodStatusHashStr = string(LatestPodStatusHash)
-//
-//	// previous pod hash
-//	PreviousPodHash := shared.GetPodState().PreviousPodHash
-//	var PreviousPodStatusHashStr string
-//	if PreviousPodHash == nil {
-//		PreviousPodStatusHashStr = ""
-//	} else {
-//		PreviousPodStatusHashStr = string(PreviousPodHash)
-//	}
-//
-//	// get witness
-//	witnessByte := shared.GetPodState().LatestPublicWitness
-//
-//	registry, err := cosmosaccount.New(cosmosaccount.WithHome(accountPath))
-//	if err != nil {
-//		logs.Log.Error(fmt.Sprintf("Error creating account registry: %v", err))
-//		return false
-//	}
-//
-//	newTempAccount, err := registry.GetByName(accountName)
-//	if err != nil {
-//		logs.Log.Error(fmt.Sprintf("Error getting account: %v", err))
-//		return false
-//	}
-//
-//	newTempAddr, err := newTempAccount.Address(addressPrefix)
-//	if err != nil {
-//		logs.Log.Error(fmt.Sprintf("Error getting address: %v", err))
-//		return false
-//	}
-//
-//	ctx := context.Background()
-//	gas := utilis.GenerateRandomWithFavour(510, 1000, [2]int{520, 700}, 0.7)
-//	gasFees := fmt.Sprintf("%damf", gas)
-//	logs.Log.Warn(fmt.Sprintf("Gas Fees Used for submitPod transaction is: %s\n", gasFees))
-//	accountClient, err := cosmosclient.New(ctx, cosmosclient.WithAddressPrefix(addressPrefix), cosmosclient.WithNodeAddress(jsonRpc), cosmosclient.WithHome(accountPath), cosmosclient.WithGas("auto"), cosmosclient.WithFees(gasFees))
-//	if err != nil {
-//		logs.Log.Error("Error creating account client")
-//		return false
-//	}
-//
-//	unixTime := time.Now().Unix()
-//	currentTime := fmt.Sprintf("%d", unixTime)
-//
-//	//Error Solve kar
-//	//pMrh := shared.GetPodState().PreviousPodHash
-//
-//	msg := types.MsgSubmitPod{
-//		Creator:                newTempAddr,
-//		StationId:              stationId,
-//		PodNumber:              podNumber,
-//		MerkleRootHash:         LatestPodStatusHashStr,
-//		PreviousMerkleRootHash: PreviousPodStatusHashStr, // bytes.NewBuffer(pMrh).String(), // PreviousPodStatusHashStr,
-//		PublicWitness:          witnessByte,
-//		Timestamp:              currentTime,
-//	}
-//
-//	txRes, errTxRes := accountClient.BroadcastTx(ctx, newTempAccount, &msg)
-//	if errTxRes != nil {
-//		logs.Log.Error("error in transaction" + errTxRes.Error())
-//		return false
-//	}
-//	logs.Log.Info("Transaction Hash for SubmitPod: " + txRes.TxHash)
-//	return true
-//
-//}
+import (
+	"context"
+	"cosmossdk.io/log"
+	"fmt"
+	"github.com/airchains-network/junction/x/junction/types"
+	"github.com/ignite/cli/v28/ignite/pkg/cosmosaccount"
+	"github.com/ignite/cli/v28/ignite/pkg/cosmosclient"
+	"os"
+	"time"
+)
+
+func SubmitPod(podNumber uint64, ctx context.Context, jClient cosmosclient.Client, account cosmosaccount.Account, addr, stationId, previousMerkleRootHash, MerkleRootHash string, Witness []byte, Proof []byte) (success bool) {
+
+	var LatestPodStatusHashStr string
+	LatestPodStatusHashStr = MerkleRootHash
+
+	// previous pod hash
+	var PreviousPodStatusHashStr string
+	PreviousPodStatusHashStr = previousMerkleRootHash
+
+	// get witness
+	witnessByte := Witness
+
+	unixTime := time.Now().Unix()
+	currentTime := fmt.Sprintf("%d", unixTime)
+
+	msg := types.MsgSubmitPod{
+		Creator:                addr,
+		StationId:              stationId,
+		PodNumber:              podNumber,
+		MerkleRootHash:         LatestPodStatusHashStr,
+		PreviousMerkleRootHash: PreviousPodStatusHashStr, // bytes.NewBuffer(pMrh).String(), // PreviousPodStatusHashStr,
+		PublicWitness:          witnessByte,
+		Timestamp:              currentTime,
+	}
+	// check if pod is already submitted
+	podDetails := QueryPod(jClient, ctx, stationId, podNumber)
+	if podDetails != nil {
+		log.NewLogger(os.Stderr).Info("Pod already submitted")
+		return true
+	}
+
+	for {
+		txRes, errTxRes := jClient.BroadcastTx(ctx, account, &msg)
+		if errTxRes != nil {
+			log.NewLogger(os.Stderr).Debug("Error in SubmitPod Transaction", "error", errTxRes.Error())
+			log.NewLogger(os.Stderr).Debug("Retrying SubmitPod transaction after 10 seconds..")
+			time.Sleep(10 * time.Second)
+		} else {
+			log.NewLogger(os.Stderr).Info("Pod Submit Successfully", "txHash", txRes.TxHash)
+			return true
+		}
+	}
+}
