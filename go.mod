@@ -7,7 +7,7 @@ require (
 	github.com/airchains-network/evmos-v12 v0.0.0-20240604082409-47f8e2bdb464
 	github.com/cosmos/cosmos-sdk v0.46.16
 	github.com/cosmos/ibc-go/v6 v6.1.2
-	github.com/ethereum/go-ethereum v1.10.26
+	github.com/ethereum/go-ethereum v1.14.5
 	github.com/gorilla/mux v1.8.0
 	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cast v1.5.0
@@ -204,5 +204,6 @@ replace (
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
+	//github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29\
+	github.com/tendermint/tendermint =>  github.com/airchains-network/tracksbft v0.1.1
 )

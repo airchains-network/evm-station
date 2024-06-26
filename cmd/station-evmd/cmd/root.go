@@ -311,5 +311,8 @@ func initTendermintConfig() *tmcfg.Config {
 	// cfg.P2P.MaxNumInboundPeers = 100
 	// cfg.P2P.MaxNumOutboundPeers = 40
 
+	// TracksStationType define which type of station is this
+	cfg.RPC.TrackStationType = "evm" // options: evm cosmwasm svm
+
 	return cfg
 }
