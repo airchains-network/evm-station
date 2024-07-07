@@ -32,9 +32,41 @@ The project requires:
     /bin/bash ./scripts/local-setup.sh 
 ```
 
-- To Start the station, execute the following command:
 ```shell
-    /bin/bash ./scripts/local-start.sh 
+sudo tee /etc/systemd/system/evmosd.service > /dev/null <<EOF
+[Unit]
+Description=evmosd node
+After=network-online.target
+[Service]
+User=$USER
+WorkingDirectory=$HOME/.evmosd
+ExecStart=/root/evm-station/build/station-evm start \
+--metrics "" \
+--log_level "info" \
+--json-rpc.api eth,txpool,personal,net,debug,web3 \
+--chain-id "stationevm_1234-1"
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65535
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+```shell
+sudo systemctl daemon-reload
+sudo systemctl enable evmosd
+sudo systemctl restart evmosd
+```
+
+```shell
+sudo journalctl -u evmosd -fo cat
+```
+
+You can stop it with CTRL-C
+
+```shell
+sed -i 's/address = "127.0.0.1:8545"/address = "0.0.0.0:8545"/' /root/.evmosd/config/app.toml
 ```
 
 - To Get the Private Keys of the EVM Chain, execute the following command:
