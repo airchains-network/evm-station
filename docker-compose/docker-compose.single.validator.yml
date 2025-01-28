@@ -1,0 +1,104 @@
+version: '3'
+
+services:
+  validator:
+    image: ghcr.io/zama-ai/ethermint-node:v0.3.0-8
+    container_name: ethermintnode0
+    depends_on:
+      - otel_collector
+    ports:
+      - "26656-26657:26656-26657"
+      - "8545:8545"
+    volumes:
+      - ../running_node/node2:/root:Z
+      - ../setup.sh:/config/setup.sh:Z
+    security_opt:
+      - no-new-privileges:true
+
+  kms:
+    image: ghcr.io/zama-ai/kms@sha256:099f79a196e9d2960516b4cedc2909939d3de0de9c171734e8de8293db32444e
+    container_name: zbc-kms
+    volumes:
+      - ../running_node/node2/.ethermintd/zama/keys/kms-fhe-keys:/usr/src/kms-server/temp:Z
+    ports:
+      - "50051:50051"
+    security_opt:
+      - no-new-privileges:true
+
+  kms-async:
+    image: ghcr.io/zama-ai/kms-dev:v0.3.3-pre-13
+    container_name: zbc-kms-async
+    volumes:
+      - ../running_node/node2/.ethermintd/zama/keys/kms-fhe-keys:/app/kms/temp/:Z
+    ports:
+      - "50052:50052"
+    command: ["kms-server", "0.0.0.0:50052"]
+    security_opt:
+      - no-new-privileges:true
+
+  aggregator:
+    image: ghcr.io/zama-ai/aggregator:6068bbf
+    container_name: zbc-aggregator
+    volumes:
+      - ../running_node/node2/.ethermintd/zama/keys/kms-fhe-keys:/app/aggregator/temp/:Z
+    ports:
+      - "5005:5005"
+    security_opt:
+      - no-new-privileges:true
+
+  oracle:
+    image: ghcr.io/zama-ai/oracle:v0.1.1
+    container_name: zbc-oracle
+    environment:
+      - LIGHTNODE_ADDR=http://ethermintnodelocal:26657
+      # Used by the oracle service
+      - AGGREGATOR_ADDR=aggregator:5005
+      - ETHEREUM_ADDR=ws://ethermintnodelocal:8546
+      - ETHERMINT_ADDR=tcp://ethermintnodelocal:26657
+    security_opt:
+      - no-new-privileges:true
+
+  jaeger:
+    image: jaegertracing/all-in-one:${JAEGER_IMAGE_TAG:-latest}
+    volumes:
+      - "../observability/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
+    command: --query.ui-config /etc/jaeger/jaeger-ui.json
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+      - PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR=${PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR:-true}
+      - PROMETHEUS_QUERY_NAMESPACE=${PROMETHEUS_QUERY_NAMESPACE:-}
+      - PROMETHEUS_QUERY_DURATION_UNIT=${PROMETHEUS_QUERY_DURATION_UNIT:-}
+      - PROMETHEUS_QUERY_NORMALIZE_CALLS=true
+      - PROMETHEUS_QUERY_NORMALIZE_DURATION=true
+    ports:
+      - "16686:16686"
+  otel_collector:
+    image: otel/opentelemetry-collector-contrib:${OTEL_IMAGE_TAG:-0.89.0}
+    volumes:
+      - ${OTEL_CONFIG_SRC:-../observability/otel-collector-config-connector.yml}:/etc/otelcol/otel-collector-config.yml
+    command: --config /etc/otelcol/otel-collector-config.yml
+    depends_on:
+      - jaeger
+    ports:
+      - "4317:4317"
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - "../observability/prometheus.yml:/etc/prometheus/prometheus.yml"
+    ports:
+      - "6060:9090"
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - ../observability/grafana.ini:/etc/grafana/grafana.ini
+      - ../observability/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yaml
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - 3000:3000
+
+
+

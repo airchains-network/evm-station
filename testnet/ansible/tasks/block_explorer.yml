@@ -1,0 +1,34 @@
+
+- name: Clone fhevm repo
+  git:
+    repo: 'https://github.com/blockscout/blockscout.git'
+    dest: '/home/ubuntu/blockscout-{{ blockscout_version }}-beta'
+    version: 'v{{ blockscout_version }}-beta'
+    update: no
+
+- name: Render common-blockscout.env
+  template:
+    src: blockscout.common-blockscout.env.tpl
+    dest: '/home/ubuntu/blockscout-{{ blockscout_version }}-beta/docker-compose/envs/common-blockscout.env'
+
+- name: Render frontend-blockscout.env
+  template:
+    src: blockscout.common-frontend.env.tpl
+    dest: '/home/ubuntu/blockscout-{{ blockscout_version }}-beta/docker-compose/envs/common-frontend.env'
+
+- name: Render docker-compose.yml
+  template:
+    src: block-explorer-docker-compose.yml.tpl
+    dest: '/home/ubuntu/blockscout-{{ blockscout_version }}-beta/docker-compose/docker-compose.yml'
+
+- name: Render custom proxy/default.conf.template
+  vars:
+    rpc_servers: "{{ groups['rpc_archival'] }}"
+  template:
+    src: block-explorer-nginx-default.conf.tpl
+    dest: '/home/ubuntu/blockscout-{{ blockscout_version }}-beta/docker-compose/proxy/default.conf.template'
+
+- name: Start docker compose
+  shell:
+    cmd: docker compose up -d --build
+    chdir: '/home/ubuntu/blockscout-{{ blockscout_version }}-beta/docker-compose'

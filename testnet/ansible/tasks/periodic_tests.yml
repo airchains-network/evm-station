@@ -1,0 +1,53 @@
+- name: Install the gpg key for nodejs LTS
+  become: yes
+  apt_key:
+    url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+    state: present
+
+- name: Install the nodejs LTS repos
+  become: yes
+  apt_repository:
+    repo: "deb https://deb.nodesource.com/node_20.x {{ ansible_distribution_release }} main"
+    state: present
+    update_cache: yes
+
+- name: Install the nodejs
+  become: yes
+  apt:
+    name: nodejs
+    state: present
+
+- name: Clone fhevm repo
+  git:
+    repo: 'https://github.com/zama-ai/fhevm.git'
+    dest: /home/ubuntu/fhevm
+    version: '{{ fhevm_version }}'
+    update: no
+
+- name: Point to our testnet
+  lineinfile:
+    path: /home/ubuntu/fhevm/hardhat.config.ts
+    search_string: "jsonRpcUrl = 'https://devnet.zama.ai';"
+    line: "      jsonRpcUrl = 'http://{{ groups['rpc_archival'][0] }}:8545';"
+
+- name: Copy default secrets file
+  copy:
+    src: /home/ubuntu/fhevm/.env.example
+    dest: /home/ubuntu/fhevm/.env
+    remote_src: yes
+
+- name: Install package dependencies for fhevm
+  community.general.npm:
+    path: /home/ubuntu/fhevm
+
+- name: install run-fhevm-tests service systemd unit file
+  become: yes
+  template: src=run-fhevm-tests.service.j2 dest=/etc/systemd/system/run-fhevm-tests.service
+
+- name: install run-fhevm-tests timer systemd unit file
+  become: yes
+  template: src=run-fhevm-tests.timer.j2 dest=/etc/systemd/system/run-fhevm-tests.timer
+
+- name: start fhevm tests timer
+  become: yes
+  systemd: state=started name=run-fhevm-tests.timer daemon_reload=yes

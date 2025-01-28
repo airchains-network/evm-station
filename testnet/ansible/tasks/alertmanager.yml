@@ -1,0 +1,29 @@
+- name: Create alertmanager templates dir
+  shell: mkdir -p /etc/alertmanager/templates
+  changed_when: false
+
+- name: Install slack template
+  copy:
+    src: alertmanager_slack_template.tmpl
+    dest: /etc/alertmanager/templates/alertmanager_slack_template.tmpl
+
+- name: Install alertmanager
+  include_role:
+    name: prometheus.prometheus.alertmanager
+  vars:
+    alertmanager_version: 0.26.0
+    alertmanager_receivers:
+      - name: slack
+        slack_configs:
+          - api_url: https://hooks.slack.com/services/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
+            channel: testnet-alerts
+            color: '{% raw %}{{ template "slack.color" . }}{% endraw %}'
+            title: '{% raw %}{{ template "slack.title" . }}{% endraw %}'
+            text: '{% raw %}{{ template "slack.text" . }}{% endraw %}'
+            send_resolved: true
+    alertmanager_route:
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 1h
+      receiver: slack

@@ -1,0 +1,104 @@
+---
+- hosts: vpn
+  become: yes
+  tags: vpn
+  tasks:
+    - include_tasks: tasks/vpn_server.yml
+
+- hosts: all
+  become: yes
+  tags: all_nodes
+  tasks:
+    - name: Install docker
+      include_role:
+        name: geerlingguy.docker
+      vars:
+        # 2.24.6 breaks stuff https://github.com/docker/compose/issues/11544
+        # TODO: remove once newer past this point
+        docker_compose_version: 2.24.5
+        docker_users:
+          - ubuntu
+
+    # comment above
+    - name: Downgrade docker compose
+      shell: apt-get install --allow-downgrades -y docker-compose-plugin=2.24.5-1~ubuntu.22.04~jammy
+      changed_when: False
+
+    # expand filesystems if applicable, we assume root partitions everywhere for simplicity
+    - name: Expand filesystems for all nodes
+      shell: |
+        growpart /dev/nvme0n1 1 || true
+        resize2fs /dev/nvme0n1p1 || true
+
+- hosts: all
+  become: yes
+  tags: exporters
+  tasks:
+    - include_tasks: tasks/exporters.yml
+
+- hosts: metrics
+  become: yes
+  tags: alertmanager
+  tasks:
+    - include_tasks: tasks/alertmanager.yml
+
+- hosts: metrics
+  become: yes
+  tags: prometheus
+  tasks:
+    - include_tasks: tasks/prometheus.yml
+
+- hosts: metrics
+  tags: grafana_tempo
+  tasks:
+    - include_tasks: tasks/grafana_tempo.yml
+
+- hosts: metrics
+  tags: grafana
+  tasks:
+    - include_tasks: tasks/grafana.yml
+
+- hosts: validators
+  become: yes
+  tags: validators
+  tasks:
+    - include_tasks: tasks/validators.yml
+
+- hosts: rpc_archival
+  become: yes
+  tags: rpc_archival
+  tasks:
+    - include_tasks: tasks/rpc_archival.yml
+
+- hosts: kms
+  become: yes
+  tags: kms
+  tasks:
+    - include_tasks: tasks/kms.yml
+
+- hosts: validators[0]
+  tags: faucet
+  tasks:
+    - include_tasks: tasks/faucet.yml
+
+- hosts: vpn[0]
+  tags: periodic_tests
+  tasks:
+    - include_tasks: tasks/periodic_tests.yml
+
+- hosts: vpn[0]
+  tags: stress_tests
+  tasks:
+    - include_tasks: tasks/stress_tests.yml
+      loop: '{{ stress_test_accounts }}'
+      loop_control:
+        index_var: account_index
+      vars:
+        stress_test_dir: '/home/ubuntu/stress{{ account_index }}-fhevm'
+        stress_test_index: '{{ account_index }}'
+        mnemonic: '{{ item.mnemonic }}'
+
+- hosts: block_explorer
+  tags: block_explorer
+  tasks:
+    - include_tasks: tasks/block_explorer.yml

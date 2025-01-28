@@ -1,0 +1,1557 @@
+{
+  "meta": {
+    "type": "db",
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true,
+    "canStar": true,
+    "canDelete": true,
+    "slug": "fhevmperformance",
+    "url": "/d/c0766577-234b-4e0f-bc5a-a5144050c585/fhevmperformance",
+    "expires": "0001-01-01T00:00:00Z",
+    "created": "2024-03-08T02:03:50Z",
+    "updated": "2024-03-12T10:01:37Z",
+    "updatedBy": "admin",
+    "createdBy": "admin",
+    "version": 10,
+    "hasAcl": false,
+    "isFolder": false,
+    "folderId": 0,
+    "folderUid": "",
+    "folderTitle": "General",
+    "folderUrl": "",
+    "provisioned": false,
+    "provisionedExternalId": "",
+    "annotationsPermissions": {
+      "dashboard": {
+        "canAdd": true,
+        "canEdit": true,
+        "canDelete": true
+      },
+      "organization": {
+        "canAdd": true,
+        "canEdit": true,
+        "canDelete": true
+      }
+    }
+  },
+  "dashboard": {
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+      ]
+    },
+    "description": "",
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "gnetId": 18328,
+    "graphTooltip": 0,
+    "id": 3,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 16,
+        "panels": [],
+        "title": "Cluster throughput",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 3,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 0,
+          "y": 1
+        },
+        "id": 17,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "max"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "max(rate(cometbft_consensus_total_txs[10m]))",
+            "format": "time_series",
+            "instant": false,
+            "legendFormat": "{{ instance }}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Max transactions per second",
+        "transformations": [],
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 3,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 6,
+          "x": 6,
+          "y": 1
+        },
+        "id": 19,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "max"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "avg(rate(cometbft_consensus_total_txs[$__range]))",
+            "format": "time_series",
+            "instant": true,
+            "legendFormat": "{{ instance }}",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Average transactions per second",
+        "transformations": [],
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 3,
+            "mappings": [],
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "ops"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 12,
+          "x": 12,
+          "y": 1
+        },
+        "id": 18,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "rate(cometbft_consensus_total_txs[10m])",
+            "format": "time_series",
+            "instant": false,
+            "legendFormat": "{{ instance }}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Transactions per second by instance",
+        "transformations": [],
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 8
+        },
+        "id": 4,
+        "panels": [],
+        "title": "Span durations",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "tempo",
+          "uid": "P214B5B846CF3925F"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "ns"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 12,
+          "x": 0,
+          "y": 9
+        },
+        "id": 3,
+        "options": {
+          "displayMode": "lcd",
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": true
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "valueMode": "color"
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "P214B5B846CF3925F"
+            },
+            "filters": [
+              {
+                "id": "7b97e546",
+                "operator": "=",
+                "scope": "span"
+              },
+              {
+                "id": "service-name",
+                "operator": "=",
+                "scope": "resource",
+                "tag": "service.name",
+                "value": [
+                  "fhevm"
+                ],
+                "valueType": "string"
+              },
+              {
+                "id": "span-name",
+                "operator": "=",
+                "scope": "span",
+                "tag": "name",
+                "value": [],
+                "valueType": "string"
+              },
+              {
+                "id": "status",
+                "operator": "=",
+                "scope": "intrinsic",
+                "tag": "status",
+                "value": [],
+                "valueType": "keyword"
+              }
+            ],
+            "limit": 1000,
+            "query": "{resource.service.name=\"fhevm\" && name != \"InterpreterRun\"}",
+            "queryType": "traceql",
+            "refId": "A",
+            "spss": 100,
+            "tableType": "spans"
+          }
+        ],
+        "title": "Fhevm operations average duration",
+        "transformations": [
+          {
+            "id": "groupBy",
+            "options": {
+              "fields": {
+                "Duration": {
+                  "aggregations": [
+                    "mean",
+                    "min",
+                    "max"
+                  ],
+                  "operation": "aggregate"
+                },
+                "Name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "duration": {
+                  "aggregations": [
+                    "mean"
+                  ],
+                  "operation": "aggregate"
+                },
+                "name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "traceName": {
+                  "aggregations": []
+                }
+              }
+            }
+          },
+          {
+            "id": "sortBy",
+            "options": {
+              "fields": {},
+              "sort": [
+                {
+                  "desc": true,
+                  "field": "duration (mean)"
+                }
+              ]
+            }
+          }
+        ],
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "decimals": 2,
+            "mappings": [],
+            "max": 3,
+            "min": -3,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "dark-red",
+                  "value": null
+                },
+                {
+                  "color": "blue",
+                  "value": -0.05
+                },
+                {
+                  "color": "green",
+                  "value": 0.05
+                }
+              ]
+            },
+            "unit": "percentunit"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 12,
+          "x": 12,
+          "y": 9
+        },
+        "id": 14,
+        "options": {
+          "displayMode": "gradient",
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "valueMode": "color"
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "bottomk(\n    500,\n    (\n        increase(traces_spanmetrics_latency_sum{service=\"fhevm\"}[24h] offset ${changesOver})\n        / ( increase(traces_spanmetrics_calls_total{service=\"fhevm\"}[24h] offset ${changesOver}) > 100 )\n    )\n    /\n    (\n        increase(traces_spanmetrics_latency_sum{service=\"fhevm\"}[24h])\n        / ( increase(traces_spanmetrics_calls_total{service=\"fhevm\"}[24h]) > 100 )\n    )\n    - 1.0\n)\n",
+            "format": "time_series",
+            "instant": true,
+            "legendFormat": "{{ span_name }} {{ operand_types }}",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Fhevm operations duration changes over specified time",
+        "transformations": [],
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "tempo",
+          "uid": "P214B5B846CF3925F"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "ns"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        },
+        "id": 5,
+        "options": {
+          "displayMode": "lcd",
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": true
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "valueMode": "color"
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "P214B5B846CF3925F"
+            },
+            "filters": [
+              {
+                "id": "7b97e546",
+                "operator": "=",
+                "scope": "span"
+              },
+              {
+                "id": "service-name",
+                "operator": "=",
+                "scope": "resource",
+                "tag": "service.name",
+                "value": [
+                  "fhevm"
+                ],
+                "valueType": "string"
+              },
+              {
+                "id": "span-name",
+                "operator": "=",
+                "scope": "span",
+                "tag": "name",
+                "value": [],
+                "valueType": "string"
+              },
+              {
+                "id": "status",
+                "operator": "=",
+                "scope": "intrinsic",
+                "tag": "status",
+                "value": [],
+                "valueType": "keyword"
+              }
+            ],
+            "limit": 1000,
+            "query": "{resource.service.name=\"fhevm\" && name != \"InterpreterRun\"}",
+            "queryType": "traceql",
+            "refId": "A",
+            "spss": 100,
+            "tableType": "spans"
+          }
+        ],
+        "title": "Fhevm operations total time spent in period",
+        "transformations": [
+          {
+            "id": "groupBy",
+            "options": {
+              "fields": {
+                "Duration": {
+                  "aggregations": [
+                    "mean",
+                    "min",
+                    "max"
+                  ],
+                  "operation": "aggregate"
+                },
+                "Name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "duration": {
+                  "aggregations": [
+                    "sum"
+                  ],
+                  "operation": "aggregate"
+                },
+                "name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "traceName": {
+                  "aggregations": []
+                }
+              }
+            }
+          },
+          {
+            "id": "sortBy",
+            "options": {
+              "fields": {},
+              "sort": [
+                {
+                  "desc": true,
+                  "field": "duration (sum)"
+                }
+              ]
+            }
+          }
+        ],
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "tempo",
+          "uid": "P214B5B846CF3925F"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        },
+        "id": 6,
+        "options": {
+          "displayMode": "lcd",
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": true
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "valueMode": "color"
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "P214B5B846CF3925F"
+            },
+            "filters": [
+              {
+                "id": "7b97e546",
+                "operator": "=",
+                "scope": "span"
+              },
+              {
+                "id": "service-name",
+                "operator": "=",
+                "scope": "resource",
+                "tag": "service.name",
+                "value": [
+                  "fhevm"
+                ],
+                "valueType": "string"
+              },
+              {
+                "id": "span-name",
+                "operator": "=",
+                "scope": "span",
+                "tag": "name",
+                "value": [],
+                "valueType": "string"
+              },
+              {
+                "id": "status",
+                "operator": "=",
+                "scope": "intrinsic",
+                "tag": "status",
+                "value": [],
+                "valueType": "keyword"
+              }
+            ],
+            "limit": 1000,
+            "query": "{resource.service.name=\"fhevm\" && name != \"InterpreterRun\"}",
+            "queryType": "traceql",
+            "refId": "A",
+            "spss": 100,
+            "tableType": "spans"
+          }
+        ],
+        "title": "Fhevm operations hits",
+        "transformations": [
+          {
+            "id": "groupBy",
+            "options": {
+              "fields": {
+                "Duration": {
+                  "aggregations": [
+                    "mean",
+                    "min",
+                    "max"
+                  ],
+                  "operation": "aggregate"
+                },
+                "Name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "duration": {
+                  "aggregations": [
+                    "count"
+                  ],
+                  "operation": "aggregate"
+                },
+                "name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "traceName": {
+                  "aggregations": []
+                }
+              }
+            }
+          },
+          {
+            "id": "sortBy",
+            "options": {
+              "fields": {},
+              "sort": [
+                {
+                  "desc": true,
+                  "field": "duration (count)"
+                }
+              ]
+            }
+          }
+        ],
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineStyle": {
+                "fill": "solid"
+              },
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 23
+        },
+        "id": 13,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "expr": "increase(traces_spanmetrics_calls_total{service=\"fhevm\"}[5m])",
+            "instant": false,
+            "legendFormat": "{{ span_name }} {{ operand_types }}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Fhevm operation hits over time",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineStyle": {
+                "fill": "solid"
+              },
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "s"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 23
+        },
+        "id": 15,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "expr": "increase(traces_spanmetrics_latency_sum{service=\"fhevm\"}[1h]) / increase(traces_spanmetrics_calls_total{service=\"fhevm\"}[1h])",
+            "instant": false,
+            "legendFormat": "{{ span_name }} {{ operand_types }}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Fhevm operation average duration over time",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 31
+        },
+        "id": 8,
+        "panels": [],
+        "title": "FHE operation specific",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "tempo",
+          "uid": "P214B5B846CF3925F"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "orange",
+                  "value": 70
+                },
+                {
+                  "color": "red",
+                  "value": 85
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 8,
+          "x": 0,
+          "y": 32
+        },
+        "id": 12,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "P214B5B846CF3925F"
+            },
+            "filters": [
+              {
+                "id": "7b97e546",
+                "operator": "=",
+                "scope": "span"
+              },
+              {
+                "id": "service-name",
+                "operator": "=",
+                "scope": "resource",
+                "tag": "service.name",
+                "value": [
+                  "fhevm"
+                ],
+                "valueType": "string"
+              },
+              {
+                "id": "span-name",
+                "operator": "=",
+                "scope": "span",
+                "tag": "name",
+                "value": [],
+                "valueType": "string"
+              },
+              {
+                "id": "status",
+                "operator": "=",
+                "scope": "intrinsic",
+                "tag": "status",
+                "value": [],
+                "valueType": "keyword"
+              }
+            ],
+            "limit": 1000,
+            "query": "{resource.service.name=\"fhevm\" && name=\"${fheOperation}\"}",
+            "queryType": "traceql",
+            "refId": "A",
+            "spss": 100,
+            "tableType": "spans"
+          }
+        ],
+        "title": "Sample size",
+        "transformations": [
+          {
+            "id": "groupBy",
+            "options": {
+              "fields": {
+                "Duration": {
+                  "aggregations": [
+                    "mean",
+                    "min",
+                    "max"
+                  ],
+                  "operation": "aggregate"
+                },
+                "Name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "duration": {
+                  "aggregations": [
+                    "count"
+                  ],
+                  "operation": "aggregate"
+                },
+                "name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "traceName": {
+                  "aggregations": []
+                }
+              }
+            }
+          }
+        ],
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "tempo",
+          "uid": "P214B5B846CF3925F"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "orange",
+                  "value": 70
+                },
+                {
+                  "color": "red",
+                  "value": 85
+                }
+              ]
+            },
+            "unit": "ns"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 16,
+          "x": 8,
+          "y": 32
+        },
+        "id": 10,
+        "options": {
+          "minVizHeight": 75,
+          "minVizWidth": 75,
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true,
+          "sizing": "auto"
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "P214B5B846CF3925F"
+            },
+            "filters": [
+              {
+                "id": "7b97e546",
+                "operator": "=",
+                "scope": "span"
+              },
+              {
+                "id": "service-name",
+                "operator": "=",
+                "scope": "resource",
+                "tag": "service.name",
+                "value": [
+                  "fhevm"
+                ],
+                "valueType": "string"
+              },
+              {
+                "id": "span-name",
+                "operator": "=",
+                "scope": "span",
+                "tag": "name",
+                "value": [],
+                "valueType": "string"
+              },
+              {
+                "id": "status",
+                "operator": "=",
+                "scope": "intrinsic",
+                "tag": "status",
+                "value": [],
+                "valueType": "keyword"
+              }
+            ],
+            "limit": 1000,
+            "query": "{resource.service.name=\"fhevm\" && name=\"${fheOperation}\"}",
+            "queryType": "traceql",
+            "refId": "A",
+            "spss": 100,
+            "tableType": "spans"
+          }
+        ],
+        "title": "Operation durations",
+        "transformations": [
+          {
+            "id": "groupBy",
+            "options": {
+              "fields": {
+                "Duration": {
+                  "aggregations": [
+                    "mean",
+                    "min",
+                    "max"
+                  ],
+                  "operation": "aggregate"
+                },
+                "Name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "duration": {
+                  "aggregations": [
+                    "mean",
+                    "min",
+                    "max"
+                  ],
+                  "operation": "aggregate"
+                },
+                "name": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "time": {
+                  "aggregations": []
+                },
+                "traceName": {
+                  "aggregations": []
+                }
+              }
+            }
+          }
+        ],
+        "type": "gauge"
+      },
+      {
+        "datasource": {
+          "type": "tempo",
+          "uid": "P214B5B846CF3925F"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "inspect": false
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 39
+        },
+        "id": 9,
+        "options": {
+          "cellHeight": "sm",
+          "footer": {
+            "countRows": false,
+            "fields": "",
+            "reducer": [
+              "sum"
+            ],
+            "show": false
+          },
+          "showHeader": true,
+          "sortBy": [
+            {
+              "desc": true,
+              "displayName": "Duration"
+            }
+          ]
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "P214B5B846CF3925F"
+            },
+            "filters": [
+              {
+                "id": "43a945bb",
+                "operator": "=",
+                "scope": "span"
+              }
+            ],
+            "limit": 20,
+            "query": "{.service.name=\"fhevm\" && name=\"${fheOperation}\"}",
+            "queryType": "traceql",
+            "refId": "A",
+            "tableType": "spans"
+          }
+        ],
+        "title": "FHE Operation traces",
+        "transformations": [
+          {
+            "id": "sortBy",
+            "options": {
+              "fields": {},
+              "sort": [
+                {
+                  "desc": true,
+                  "field": "Duration"
+                }
+              ]
+            }
+          }
+        ],
+        "type": "table"
+      }
+    ],
+    "refresh": "1m",
+    "revision": 1,
+    "schemaVersion": 39,
+    "tags": [],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "selected": true,
+            "text": "fheAdd",
+            "value": "fheAdd"
+          },
+          "datasource": {
+            "type": "tempo",
+            "uid": "P214B5B846CF3925F"
+          },
+          "definition": "",
+          "hide": 0,
+          "includeAll": false,
+          "multi": false,
+          "name": "fheOperation",
+          "options": [],
+          "query": {
+            "label": "name",
+            "refId": "TempoDatasourceVariableQueryEditor-VariableQuery",
+            "type": 1
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "type": "query"
+        },
+        {
+          "current": {
+            "selected": true,
+            "text": "12h",
+            "value": "12h"
+          },
+          "description": "Compare changes over specified amount of time",
+          "hide": 0,
+          "includeAll": false,
+          "label": "FHE operation time changes over time",
+          "multi": false,
+          "name": "changesOver",
+          "options": [
+            {
+              "selected": false,
+              "text": "1h",
+              "value": "1h"
+            },
+            {
+              "selected": true,
+              "text": "12h",
+              "value": "12h"
+            },
+            {
+              "selected": false,
+              "text": "1d",
+              "value": "1d"
+            },
+            {
+              "selected": false,
+              "text": "7d",
+              "value": "7d"
+            },
+            {
+              "selected": false,
+              "text": "14d",
+              "value": "14d"
+            },
+            {
+              "selected": false,
+              "text": "30d",
+              "value": "30d"
+            }
+          ],
+          "query": "1h,12h,1d,2d,3d,7d,14d,30d",
+          "queryValue": "",
+          "skipUrlSync": false,
+          "type": "custom"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "1d"
+      ]
+    },
+    "timezone": "",
+    "title": "FhevmPerformance",
+    "uid": "c0766577-234b-4e0f-bc5a-a5144050c585",
+    "version": 10,
+    "weekStart": ""
+  }
+}

@@ -1,0 +1,18 @@
+ARG ETHERMINT_NODE_VERSION=v0.5.0
+
+FROM ghcr.io/zama-ai/ethermint-node:${ETHERMINT_NODE_VERSION}
+
+ENV FHEVM_GO_KEYS_DIR=/root/.ethermintd/zama/keys/network-fhe-keys
+# This privateKey correspond to addr 0x97F272ccfef4026A1F3f0e0E879d514627B84E69 which needs
+# to be added as relayer in the gateway contract
+ENV TFHE_EXECUTOR_CONTRACT_ADDRESS=0x05fD9B5EFE0a996095f42Ed7e77c390810CF660c
+
+WORKDIR /config
+
+ADD ./scripts/run_developer_image.sh .  
+ADD --chmod=755 ./faucet.py /usr/local/bin/faucet
+
+EXPOSE 26656 26657 1317 9090 8545 8546 8001
+
+ENTRYPOINT ["./run_developer_image.sh"]
+

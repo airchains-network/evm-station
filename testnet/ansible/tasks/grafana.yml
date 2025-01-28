@@ -1,0 +1,119 @@
+- name: Pull grafana image
+  community.docker.docker_image:
+    name: '{{ grafana_image }}'
+    source: pull
+
+- name: Grafana data dir
+  file:
+    path: /home/ubuntu/grafana-data
+    state: directory
+    mode: 0777
+
+- name: Grafana provisioning dir
+  file:
+    path: /home/ubuntu/grafana-data/provisioning
+    state: directory
+
+- name: Grafana datasources dir
+  file:
+    path: /home/ubuntu/grafana-data/provisioning/datasources
+    state: directory
+
+- name: Grafana datasources file
+  register: datasources_config
+  copy:
+    dest: /home/ubuntu/grafana-data/provisioning/datasources/datasources.yml
+    content: |
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://{{ groups['metrics'][0] }}:9090
+          isDefault: true
+        - name: Tempo
+          type: tempo
+          url: http://{{ groups['metrics'][0] }}:3200
+          access: proxy
+          basicAuth: false
+
+- name: Grafana ini config
+  register: grafana_config
+  copy:
+    dest: /home/ubuntu/grafana-data/grafana.ini
+    content: |
+      [paths]
+      data = /var/lib/grafana
+      plugins = /var/lib/grafana/plugins
+
+      [server]
+      protocol = http
+      http_port = 3000
+
+      [database]
+      type = sqlite3
+
+      [datasources]
+
+      [users]
+      allow_sign_up = false
+
+      [security]
+      admin_user = admin
+      admin_password = {{ grafana_admin_password }}
+
+      [auth]
+
+      [auth.anonymous]
+      enabled = false
+
+      [auth.basic]
+      enabled = true
+
+      [log]
+      mode = console
+
+      [metrics]
+      enabled = true
+
+- name: Run grafana container
+  community.docker.docker_container:
+    name: grafana
+    image: '{{ grafana_image }}'
+    network_mode: host
+    log_driver: awslogs
+    restart: "{{ datasources_config.changed or grafana_config.changed | default(false) }}"
+    log_options:
+      awslogs-region: '{{ aws_logs_region }}'
+      awslogs-stream: 'grafana'
+      awslogs-group: '{{ aws_logs_group }}'
+      awslogs-create-group: "true"
+    env:
+      GF_PATHS_CONFIG: '/var/lib/grafana/grafana.ini'
+      GF_PATHS_PROVISIONING: '/var/lib/grafana/provisioning'
+    volumes:
+      - /home/ubuntu/grafana-data:/var/lib/grafana
+
+- name: Wait for grafana to be ready
+  shell: |
+    while ! curl -s --fail-early http://{{ groups['metrics'][0] }}:3000/api/health
+    do
+      echo grafana not ready yet, sleeping...
+      sleep 5
+    done
+
+- name: Upload grafana dashboards
+  delegate_to: localhost
+  # download dashboards from api like:
+  # curl http://10.0.0.80:3000/api/dashboards/uid/rYdddlPWk > files/grafana-dashboard-node-exporter.json
+  with_items:
+    - grafana-dashboard-node-exporter.json
+    - grafana-dashboard-cadvisor.json
+    - testnet-performance.json
+    - testnet-status.json
+  shell: |
+    cat {{ playbook_dir }}/files/{{ item }} | \
+      jq '.dashboard.id = null | .overwrite = true' | \
+      curl -u admin:{{ grafana_admin_password }} \
+        -H 'Content-Type: application/json' --data @- \
+        http://{{ groups['metrics'][0] }}:3000/api/dashboards/db

@@ -1,0 +1,53 @@
+- name: Install wireguard
+  package:
+    name:
+      - wireguard
+
+- name: Generate wireguard keys
+  shell: |
+    [ ! -f /etc/wg0.privkey ] && wg genkey | tee /etc/wg0.privkey | wg pubkey > /etc/wg0.pubkey
+    chmod 600 /etc/wg0.privkey
+
+- name: Create local directory
+  become: no
+  ansible.builtin.file:
+    path: '{{ playbook_dir }}/remote-vpn-server-keys'
+    state: directory
+  delegate_to: localhost
+
+- name: Copy remote pubkey to client
+  fetch:
+    src: /etc/wg0.pubkey
+    dest: ./remote-vpn-server-keys/
+    flat: true
+
+- name: Copy remote private key to client
+  fetch:
+    src: /etc/wg0.privkey
+    dest: ./remote-vpn-server-keys/
+    flat: true
+
+- name: Read remote private key
+  set_fact:
+    remote_vpn_server_private_key: "{{ lookup('file', playbook_dir + '/remote-vpn-server-keys/wg0.privkey') }}"
+    client_vpn_public_key: "{{ lookup('file', playbook_dir + '/vpn.pubkey') }}"
+
+- name: Generate wireguard config file
+  copy:
+    mode: 0600
+    dest: /etc/wireguard/wg0.conf
+    content: |
+      [Interface]
+      Address = 172.49.0.100/24
+      PrivateKey = {{ remote_vpn_server_private_key }}
+      ListenPort = 51820
+
+      [Peer]
+      PublicKey = {{ client_vpn_public_key }}
+      AllowedIPs = 172.49.0.10/32
+      PersistentKeepalive = 25
+
+- name: Setup wireguard
+  shell: |
+    wg-quick down wg0 || true
+    wg-quick up wg0

@@ -1,0 +1,143 @@
+name: Run ci e2e test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  # this is useful to trigger test from PRs, or even manually with specific commits/tags
+  workflow_dispatch:
+    inputs:
+      geth_commit:
+        description: "zbc-go-ethereum commit/tag to use"
+        type: string
+        default: ''
+        required: false
+      fhevm_go_commit:
+        description: "fhevm-go commit/tag to use"
+        type: string
+        default: ''
+        required: false
+      fhevm_solidity_commit:
+        description: "fhevm_solidity commit/tag to use"
+        type: string
+        default: ''
+        required: false
+
+jobs:
+  docker:
+    runs-on: "large_ubuntu_32"
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: 20.x
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ethermint
+
+      - name: Get version for all needed repositories
+        working-directory: ./ethermint
+        run: |
+        
+          echo "GATEWAY_TAG=$(./scripts/get_docker_compose_tag.sh docker-compose/docker-compose.local.yml kms-blockchain-gateway-dev)" >> $GITHUB_ENV
+          echo "KMS_DEV_TAG=$(./scripts/get_docker_compose_tag.sh docker-compose/docker-compose.local.yml kms-service-dev)" >> $GITHUB_ENV
+          echo "KMS_DEV_KEY_GEN_TAG=$(./scripts/get_version_from_makefile.sh KMS_DEV_VERSION)" >> $GITHUB_ENV
+          echo "FHEVM_GO_VERSION=$(./scripts/get_module_version.sh go.mod zama.ai/fhevm-go)" >> $GITHUB_ENV
+          echo "FHEVM_SOLIDITY_VERSION=$(./scripts/get_version_from_makefile.sh FHEVM_SOLIDITY_VERSION)" >> $GITHUB_ENV
+          echo "GO_ETHEREUM_VERSION=$(./scripts/get_module_version.sh go.mod zama.ai/zbc-go-ethereum)" >> $GITHUB_ENV
+
+      # this overrides the previous geth version
+      - name: Set go-ethereum version if specified
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.geth_commit != ''
+        run: echo "GO_ETHEREUM_VERSION=${{ github.event.inputs.geth_commit }}" >> $GITHUB_ENV
+
+      # this overrides the previous fhevm_go version
+      - name: Set fhevm-go version if specified
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.fhevm_go_commit != ''
+        run: echo "FHEVM_GO_VERSION=${{ github.event.inputs.fhevm_go_commit }}" >> $GITHUB_ENV
+
+      # this overrides the previous fhevm_solidity version
+      - name: Set fhevm_solidity version if specified
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.fhevm_solidity_commit != ''
+        run: echo "FHEVM_SOLIDITY_VERSION=${{ github.event.inputs.fhevm_solidity_commit }}" >> $GITHUB_ENV
+          
+      - name: Echo versions parsed from Makefile and go.mod
+        run: |
+          echo "FHEVM_SOLIDITY_VERSION: $FHEVM_SOLIDITY_VERSION"
+          echo "GO_ETHEREUM_VERSION: $GO_ETHEREUM_VERSION"
+          echo "FHEVM_GO_VERSION: $FHEVM_GO_VERSION"
+          echo "GATEWAY_TAG: $GATEWAY_TAG"
+          echo "KMS_DEV_TAG: $KMS_DEV_TAG"
+          echo "KMS_DEV_KEY_GEN_TAG: $KMS_DEV_KEY_GEN_TAG"
+      
+
+      - name: Checkout fhevm-solidity
+        uses: actions/checkout@v3
+        with:
+          repository: zama-ai/fhevm-solidity
+          token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+          path: ./ethermint/work_dir/fhevm
+          ref: ${{ env.FHEVM_SOLIDITY_VERSION }}
+
+      - name: Checkout go-ethereum
+        uses: actions/checkout@v3
+        with:
+          repository: zama-ai/zbc-go-ethereum
+          token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+          path: ./ethermint/work_dir/zbc-go-ethereum
+          ref: ${{ env.GO_ETHEREUM_VERSION }}
+
+
+      - name: Checkout fhevm-go
+        uses: actions/checkout@v3
+        with:
+          repository: zama-ai/fhevm-go
+          token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+          path: ./ethermint/work_dir/fhevm-go
+          ref: ${{ env.FHEVM_GO_VERSION }}
+          submodules: recursive
+
+
+      - name: List files in the repository
+        working-directory: ./ethermint
+        run: |
+          ls ${{ github.workspace }}
+
+      - name: List files in work_dir
+        working-directory: ethermint/work_dir
+        run: |
+          ls
+          ls fhevm-go
+          ls fhevm-go/tfhe-rs
+          git -C ./fhevm-go/tfhe-rs branch
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build local docker 
+        working-directory: ./ethermint
+        run: |
+          make build-docker
+
+      - name: Check docker images
+        working-directory: ./ethermint
+        run: |
+          docker images
+
+      - name: Run e2e test
+        working-directory: ./ethermint
+        run: |
+          ls ${{ github.workspace }}
+          ls work_dir
+          make e2e-test

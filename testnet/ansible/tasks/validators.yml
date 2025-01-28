@@ -1,0 +1,51 @@
+- name: Log into ghcr.io
+  community.docker.docker_login:
+    registry_url: https://ghcr.io
+    username: "{{ lookup('ansible.builtin.env', 'DOCKER_PULL_GITHUB_USER') }}"
+    password: "{{ lookup('ansible.builtin.env', 'DOCKER_PULL_GITHUB_TOKEN') }}"
+
+- name: Pull the image
+  community.docker.docker_image:
+    name: "{{ testnet_blockchain_node_docker_image }}"
+    source: pull
+
+- name: Copy validator dirs
+  copy:
+    mode: preserve
+    src: "{{ playbook_dir }}/../localnet/build/{{ localnet_conf_dir }}/ethermintd"
+    dest: /home/ubuntu/
+    force: false
+
+- name: Create fhevm keys dir
+  file:
+    path: /home/ubuntu/ethermintd/fhevm-keys
+    state: directory
+
+- name: Download validator keys
+  with_items:
+    - sks
+    - pks
+  get_url:
+    url: 'http://10.0.1.100/{{ item }}'
+    dest: '/home/ubuntu/ethermintd/fhevm-keys/{{ item }}'
+
+- name: Run validator container
+  community.docker.docker_container:
+    name: ethermint_validator
+    image: "{{ testnet_blockchain_node_docker_image }}"
+    network_mode: host
+    command: /root/.ethermintd/multi-node-start.sh
+    env:
+      FHEVM_GO_KEYS_DIR: '/root/.ethermintd/fhevm-keys'
+      ZAMA_TESTNET: 'true'
+      KMS_ENDPOINT_ADDR: 10.0.0.50:50051
+      CHAINID: "{{ testnet_chain_id }}"
+      FHEVM_OTEL_COLLECTOR_ENDPOINT: "{{ groups['metrics'][0] }}:4317"
+    log_driver: awslogs
+    log_options:
+      awslogs-region: '{{ aws_logs_region }}'
+      awslogs-stream: 'val-{{ localnet_conf_dir }}'
+      awslogs-group: '{{ aws_logs_group }}'
+      awslogs-create-group: "true"
+    volumes:
+      - /home/ubuntu/ethermintd:/root/.ethermintd

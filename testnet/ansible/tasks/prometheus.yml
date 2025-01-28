@@ -1,0 +1,276 @@
+- name: Set node exporter target array
+  set_fact:
+    validator_targets: "{{ groups['validators'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | map('regex_replace', '$', ':26660') | list }}"
+    rpc_archival_targets: "{{ groups['rpc_archival'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | map('regex_replace', '$', ':26660') | list }}"
+    node_exporter_targets: "{{ groups['all'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | map('regex_replace', '$', ':9100') | list }}"
+    cadvisor_targets: "{{ groups['all'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | map('regex_replace', '$', ':9200') | list }}"
+  run_once: true
+
+- name: Node exporter targets
+  debug:
+    msg: '{{ node_exporter_targets }}'
+
+- name: Install prometheus
+  include_role:
+    name: prometheus.prometheus.prometheus
+  vars:
+    prometheus_config_flags_extra:
+      web.enable-remote-write-receiver: null
+    prometheus_alertmanager_config:
+      - scheme: http
+        static_configs:
+          - targets: ["{{ groups['metrics'][0] }}:9093"]
+    prometheus_scrape_configs:
+      - job_name: "prometheus"
+        metrics_path: "{{ prometheus_metrics_path }}"
+        static_configs:
+          - targets:
+              - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:9090"
+      - job_name: "node_exporter"
+        file_sd_configs:
+          - files:
+              - "{{ prometheus_config_dir }}/file_sd/node_exporter.yml"
+      - job_name: "cadvisor"
+        file_sd_configs:
+          - files:
+              - "{{ prometheus_config_dir }}/file_sd/cadvisor.yml"
+      - job_name: "validators"
+        file_sd_configs:
+          - files:
+              - "{{ prometheus_config_dir }}/file_sd/validators.yml"
+      - job_name: "rpc_nodes"
+        file_sd_configs:
+          - files:
+              - "{{ prometheus_config_dir }}/file_sd/rpc_nodes.yml"
+    prometheus_targets:
+      node_exporter:
+        - targets: '{{ node_exporter_targets }}'
+      cadvisor:
+        - targets: '{{ cadvisor_targets }}'
+      validators:
+        - targets: '{{ validator_targets }}'
+      rpc_nodes:
+        - targets: '{{ rpc_archival_targets }}'
+    prometheus_alert_rules:
+      - alert: CPUBusySystem
+        expr: |
+          avg by (instance) (rate(node_cpu_seconds_total{mode="system"}[30s]) * 100) > 40
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          title: "{% raw %}{{ $labels.instance }} {{ $value }}% of CPU burn by kernel{% endraw %}"
+          summary: "{% raw %}{{ $labels.instance }} {{ $value }}% of CPU burn by kernel{% endraw %}"
+          description: "{% raw %}Kernel is consuming {{ $value }}% of all CPU capacity{% endraw %}"
+      - alert: CPUBusyUser
+        expr: |
+          avg by (instance) (rate(node_cpu_seconds_total{mode="user"}[30s]) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          title: "{% raw %}{{ $labels.instance }} {{ $value }}% of CPU burn by userspace{% endraw %}"
+          summary: "{% raw %}{{ $labels.instance }} {{ $value }}% of CPU burn by userspace{% endraw %}"
+          description: "{% raw %}Userspace processes are consuming {{ $value }}% of all CPU capacity{% endraw %}"
+      - alert: CPUBusyIOWait
+        expr: |
+          avg by (instance) (rate(node_cpu_seconds_total{mode="iowait"}[30s]) * 100) > 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          title: "{% raw %}{{ $labels.instance }} {{ $value }}% of CPU burn by iowait{% endraw %}"
+          summary: "{% raw %}{{ $labels.instance }} {{ $value }}% of CPU burn by iowait{% endraw %}"
+          description: "{% raw %}I/O wait state is consuming {{ $value }}% of all CPU capacity{% endraw %}"
+      - alert: PressureCPU
+        expr: |
+          round(rate(node_pressure_cpu_waiting_seconds_total[30s]), 0.01) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          title: "{% raw %}{{ $labels.instance }} {{ $value }}s waiting for CPU{% endraw %}"
+          summary: "{% raw %}{{ $labels.instance }} {{ $value }}s waiting for CPU{% endraw %}"
+          description: "{% raw %}Processes waiting {{ $value }}s for CPU{% endraw %}"
+      - alert: PressureIO
+        expr: |
+          round(rate(node_pressure_io_waiting_seconds_total[30s]), 0.01) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          title: "{% raw %}{{ $labels.instance }} {{ $value }}s waiting for I/O{% endraw %}"
+          summary: "{% raw %}{{ $labels.instance }} {{ $value }}s waiting for I/O{% endraw %}"
+          description: "{% raw %}Processes waiting {{ $value }}s for I/O{% endraw %}"
+      - alert: InstanceDown
+        expr: 'up == 0'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          description: '{% raw %}{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes.{% endraw %}'
+          summary: '{% raw %}Instance {{ $labels.instance }} down{% endraw %}'
+      - alert: RebootRequired
+        expr: 'node_reboot_required > 0'
+        labels:
+          severity: warning
+        annotations:
+          description: '{% raw %}{{ $labels.instance }} requires a reboot.{% endraw %}'
+          summary: '{% raw %}Instance {{ $labels.instance }} - reboot required{% endraw %}'
+      - alert: NodeFilesystemSpaceFillingUp
+        annotations:
+          description: '{% raw %}Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left and is filling up.{% endraw %}'
+          summary: 'Filesystem is predicted to run out of space within the next 24 hours.'
+        expr: "(\n  node_filesystem_avail_bytes{fstype!=\"\"} / node_filesystem_size_bytes{fstype!=\"\"} * 100 < 40\nand\n  predict_linear(node_filesystem_avail_bytes{fstype!=\"\"}[6h], 24*60*60) < 0\nand\n  node_filesystem_readonly{fstype!=\"\"} == 0\n)\n"
+        for: 1h
+        labels:
+          severity: warning
+      - alert: NodeFilesystemSpaceFillingUp
+        annotations:
+          description: '{% raw %}Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left and is filling up fast.{% endraw %}'
+          summary: 'Filesystem is predicted to run out of space within the next 4 hours.'
+        expr: "(\n  node_filesystem_avail_bytes{fstype!=\"\"} / node_filesystem_size_bytes{fstype!=\"\"} * 100 < 20\nand\n  predict_linear(node_filesystem_avail_bytes{fstype!=\"\"}[6h], 4*60*60) < 0\nand\n  node_filesystem_readonly{fstype!=\"\"} == 0\n)\n"
+        for: 1h
+        labels:
+          severity: critical
+      - alert: NodeFilesystemAlmostOutOfSpace
+        annotations:
+          description: '{% raw %}Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left.{% endraw %}'
+          summary: 'Filesystem has less than 5% space left.'
+        expr: "(\n  node_filesystem_avail_bytes{fstype!=\"\"} / node_filesystem_size_bytes{fstype!=\"\"} * 100 < 5\nand\n  node_filesystem_readonly{fstype!=\"\"} == 0\n)\n"
+        for: 1h
+        labels:
+          severity: warning
+      - alert: NodeFilesystemAlmostOutOfSpace
+        annotations:
+          description: '{% raw %}Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left.{% endraw %}'
+          summary: 'Filesystem has less than 3% space left.'
+        expr: "(\n  node_filesystem_avail_bytes{fstype!=\"\"} / node_filesystem_size_bytes{fstype!=\"\"} * 100 < 3\nand\n  node_filesystem_readonly{fstype!=\"\"} == 0\n)\n"
+        for: 1h
+        labels:
+          severity: critical
+      - alert: NodeFilesystemFilesFillingUp
+        annotations:
+          description: '{% raw %}Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available inodes left and is filling up.{% endraw %}'
+          summary: 'Filesystem is predicted to run out of inodes within the next 24 hours.'
+        expr: "(\n  node_filesystem_files_free{fstype!=\"\"} / node_filesystem_files{fstype!=\"\"} * 100 < 40\nand\n  predict_linear(node_filesystem_files_free{fstype!=\"\"}[6h], 24*60*60) < 0\nand\n  node_filesystem_readonly{fstype!=\"\"} == 0\n)\n"
+        for: 1h
+        labels:
+          severity: warning
+      - alert: NodeFilesystemFilesFillingUp
+        annotations:
+          description: '{% raw %}Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available inodes left and is filling up fast.{% endraw %}'
+          summary: 'Filesystem is predicted to run out of inodes within the next 4 hours.'
+        expr: "(\n  node_filesystem_files_free{fstype!=\"\"} / node_filesystem_files{fstype!=\"\"} * 100 < 20\nand\n  predict_linear(node_filesystem_files_free{fstype!=\"\"}[6h], 4*60*60) < 0\nand\n  node_filesystem_readonly{fstype!=\"\"} == 0\n)\n"
+        for: 1h
+        labels:
+          severity: critical
+      - alert: NodeFilesystemAlmostOutOfFiles
+        annotations:
+          description: '{% raw %}Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available inodes left.{% endraw %}'
+          summary: 'Filesystem has less than 5% inodes left.'
+        expr: "(\n  node_filesystem_files_free{fstype!=\"\"} / node_filesystem_files{fstype!=\"\"} * 100 < 5\nand\n  node_filesystem_readonly{fstype!=\"\"} == 0\n)\n"
+        for: 1h
+        labels:
+          severity: warning
+      - alert: NodeFilesystemAlmostOutOfFiles
+        annotations:
+          description: '{% raw %}Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available inodes left.{% endraw %}'
+          summary: 'Filesystem has less than 3% inodes left.'
+        expr: "(\n  node_filesystem_files_free{fstype!=\"\"} / node_filesystem_files{fstype!=\"\"} * 100 < 3\nand\n  node_filesystem_readonly{fstype!=\"\"} == 0\n)\n"
+        for: 1h
+        labels:
+          severity: critical
+      - alert: NodeNetworkReceiveErrs
+        annotations:
+          description: '{% raw %}{{ $labels.instance }} interface {{ $labels.device }} has encountered {{ printf "%.0f" $value }} receive errors in the last two minutes.{% endraw %}'
+          summary: 'Network interface is reporting many receive errors.'
+        expr: "increase(node_network_receive_errs_total[2m]) > 10\n"
+        for: 1h
+        labels:
+          severity: warning
+      - alert: NodeNetworkTransmitErrs
+        annotations:
+          description: '{% raw %}{{ $labels.instance }} interface {{ $labels.device }} has encountered {{ printf "%.0f" $value }} transmit errors in the last two minutes.{% endraw %}'
+          summary: 'Network interface is reporting many transmit errors.'
+        expr: "increase(node_network_transmit_errs_total[2m]) > 10\n"
+        for: 1h
+        labels:
+          severity: warning
+      - alert: NodeHighNumberConntrackEntriesUsed
+        annotations:
+          description: '{% raw %}{{ $value | humanizePercentage }} of conntrack entries are used{% endraw %}'
+          summary: 'Number of conntrack are getting close to the limit'
+        expr: "(node_nf_conntrack_entries / node_nf_conntrack_entries_limit) > 0.75\n"
+        labels:
+          severity: warning
+      - alert: NodeClockSkewDetected
+        annotations:
+          message: '{% raw %}Clock on {{ $labels.instance }} is out of sync by more than 300s. Ensure NTP is configured correctly on this host.{% endraw %}'
+          summary: 'Clock skew detected.'
+        expr: "(\n  node_timex_offset_seconds > 0.05\nand\n  deriv(node_timex_offset_seconds[5m]) >= 0\n)\nor\n(\n  node_timex_offset_seconds < -0.05\nand\n  deriv(node_timex_offset_seconds[5m]) <= 0\n)\n"
+        for: 10m
+        labels:
+          severity: warning
+      - alert: NodeClockNotSynchronising
+        annotations:
+          message: '{% raw %}Clock on {{ $labels.instance }} is not synchronising. Ensure NTP is configured on this host.{% endraw %}'
+          summary: 'Clock not synchronising.'
+        expr: min_over_time(node_timex_sync_status[5m]) == 0
+        for: 10m
+        labels:
+          severity: warning
+      - alert: SystemOutOfMemory
+        expr: increase(node_vmstat_oom_kill[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          title: "{% raw %}{{ $labels.instance }} out-of-memory{% endraw %}"
+          summary: "{% raw %}{{ $labels.instance }} out-of-memory{% endraw %}"
+          description: "System suffered out-of-memory condition"
+      - alert: DiskUtilizationWarning
+        expr: |
+          (rate(node_disk_io_time_seconds_total{device!~"sr.*"}[30s]) * 100) > 85
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          title: "{% raw %}{{ $labels.instance }} {{ $labels.device }} is {{ $value }}% busy{% endraw %}"
+          summary: "{% raw %}{{ $labels.instance }} {{ $labels.device }} is {{ $value }}% busy{% endraw %}"
+          description: "{% raw %}Disk {{ $labels.device }} is {{ $value }}% busy{% endraw %}"
+      - alert: DiskUtilizationCritical
+        expr: |
+          (rate(node_disk_io_time_seconds_total{device!~"sr.*"}[30s]) * 100) > 95
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          title: "{% raw %}{{ $labels.instance }} {{ $labels.device }} is {{ $value }}% busy{% endraw %}"
+          summary: "{% raw %}{{ $labels.instance }} {{ $labels.device }} is {{ $value }}% busy{% endraw %}"
+          description: "{% raw %}Disk {{ $labels.device }} is {{ $value }}% busy{% endraw %}"
+      - alert: InstanceScrapeSlow
+        expr: round(scrape_duration_seconds, 0.1) > 5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          title: "{% raw %}{{ $labels.instance }} scraped in {{ $value }}s{% endraw %}"
+          summary: "{% raw %}{{ $labels.instance }} scraped in {{ $value }}s{% endraw %}"
+          description: "{% raw %}Scraping instance {{ $labels.instance }} took {{ $value }}s{% endraw %}"
+      - alert: NodeRebooted
+        expr: changes(node_boot_time_seconds[15m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          title: '{% raw %}{{ $labels.instance }} Node has rebooted{% endraw %}'
+          summary: '{% raw %}{{ $labels.instance }} Node has rebooted{% endraw %}'
+      - alert: BlockchainHalted
+        expr: irate(cometbft_consensus_latest_block_height[1m]) == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          title: '{% raw %}{{ $labels.instance }} blockchain has halted{% endraw %}'
+          summary: '{% raw %}{{ $labels.instance }} blockchain has halted{% endraw %}'

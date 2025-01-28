@@ -1,0 +1,36 @@
+- name: Enable ip forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Create NFT rules file
+  copy:
+    dest: /root/rules.nft
+    content: |
+      table nat {
+        chain postrouting {
+          type nat hook postrouting priority 0;
+          iifname wg0 oifname ens5 masquerade comment "client VPN";
+        }
+      }
+
+- name: Enable NAT internet for internal nodes
+  copy:
+    dest: /etc/systemd/system/nat-instance.service
+    content: |
+      [Unit]
+      Description=Set up VPN masquerading
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/sbin/nft -f /root/rules.nft
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Start nat instance service
+  service: name=nat-instance.service state=started enabled=yes

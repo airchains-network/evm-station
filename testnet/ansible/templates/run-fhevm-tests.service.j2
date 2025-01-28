@@ -1,0 +1,12 @@
+[Unit]
+Description=Run fhevm tests
+
+[Service]
+User=ubuntu
+Group=ubuntu
+Type=oneshot
+ExecStart=/usr/bin/npx hardhat test --network zama
+WorkingDirectory=/home/ubuntu/fhevm
+
+[Install]
+WantedBy=multi-user.target

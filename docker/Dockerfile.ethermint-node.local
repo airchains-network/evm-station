@@ -1,0 +1,47 @@
+ARG ZBC_VERSION=latest
+FROM ghcr.io/zama-ai/zama-zbc-build:${ZBC_VERSION} AS build-env
+
+RUN echo "ZBC_VERSION: ${ZBC_VERSION}"
+
+ADD . /src/ethermint
+
+
+WORKDIR /src/ethermint
+
+RUN cp go.mod.updated /src/ethermint/go.mod
+
+RUN tail /src/ethermint/go.mod
+
+RUN ls /src/ethermint
+RUN mkdir -p /src/ethermint/build
+
+WORKDIR /src/ethermint/work_dir/fhevm-go
+RUN make build
+
+WORKDIR /src/ethermint
+
+RUN make build-local
+RUN ls /src/ethermint/build
+
+
+FROM ghcr.io/zama-ai/zama-zbc-build:${ZBC_VERSION}
+
+RUN apt-get update -y
+RUN apt-get install ca-certificates jq -y
+
+
+
+COPY --from=build-env /src/ethermint/build/ethermintd /usr/bin/ethermintd
+
+
+WORKDIR /config
+ADD setup.sh .
+RUN chmod +x /config/setup.sh
+ADD --chmod=755 faucet.py /usr/local/bin/faucet
+RUN mkdir -p /root/.ethermintd/zama
+RUN mkdir -p /root/.ethermintd/zama/keys/network-fhe-keys
+
+
+EXPOSE 26656 26657 1317 9090 8545 8546
+
+CMD ["/usr/bin/ethermintd", "start", "--home", "/root/.ethermintd"]

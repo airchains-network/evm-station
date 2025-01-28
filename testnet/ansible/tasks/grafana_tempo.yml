@@ -1,0 +1,92 @@
+- name: Pull images
+  community.docker.docker_image:
+    name: '{{ grafana_tempo_image }}'
+    source: pull
+
+- name: Tempo data dir
+  file:
+    path: /home/ubuntu/grafana-tempo-data
+    state: directory
+    mode: 0777
+
+- name: Tempo config
+  copy:
+    dest: /home/ubuntu/grafana-tempo-data/tempo.yaml
+    content: |
+      stream_over_http_enabled: true
+      server:
+        http_listen_port: 3200
+        log_level: info
+
+      query_frontend:
+        search:
+          duration_slo: 5s
+          throughput_bytes_slo: 1.073741824e+09
+        trace_by_id:
+          duration_slo: 5s
+
+      distributor:
+        receivers:
+          jaeger:
+            protocols:
+              thrift_http:
+              grpc:
+              thrift_binary:
+              thrift_compact:
+          zipkin:
+          otlp:
+            protocols:
+              http:
+              grpc:
+          opencensus:
+
+      ingester:
+        max_block_duration: 5m
+
+      compactor:
+        compaction:
+          block_retention: 2160h
+
+      metrics_generator:
+        registry:
+          external_labels:
+            source: tempo
+            cluster: docker-compose
+        storage:
+          path: /tempo-data/generator/wal
+          remote_write:
+            - url: http://{{ groups['metrics'][0] }}:9090/api/v1/write
+              send_exemplars: true
+
+      storage:
+        trace:
+          backend: local
+          wal:
+            path: /tempo-data/wal
+          local:
+            path: /tempo-data/blocks
+
+      overrides:
+        defaults:
+          metrics_generator:
+            processors: [service-graphs, span-metrics]
+            processor:
+              span_metrics:
+                dimensions:
+                  - operand_types
+
+- name: Run tempo container
+  community.docker.docker_container:
+    name: grafana_tempo
+    image: '{{ grafana_tempo_image }}'
+    network_mode: host
+    log_driver: awslogs
+    log_options:
+      awslogs-region: '{{ aws_logs_region }}'
+      awslogs-stream: 'grafana_tempo'
+      awslogs-group: '{{ aws_logs_group }}'
+      awslogs-create-group: "true"
+    command:
+      - -config.file=/tempo-data/tempo.yaml
+    volumes:
+      - /home/ubuntu/grafana-tempo-data:/tempo-data

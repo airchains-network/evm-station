@@ -1,0 +1,36 @@
+- name: Log into ghcr.io
+  community.docker.docker_login:
+    registry_url: https://ghcr.io
+    username: "{{ lookup('ansible.builtin.env', 'DOCKER_PULL_GITHUB_USER') }}"
+    password: "{{ lookup('ansible.builtin.env', 'DOCKER_PULL_GITHUB_TOKEN') }}"
+
+- name: Pull the image
+  community.docker.docker_image:
+    name: "{{ testnet_blockchain_kms_docker_image }}"
+    source: pull
+
+- name: Create fhevm keys dir
+  file:
+    path: /home/ubuntu/fhevm-keys
+    state: directory
+
+- name: Download kms key
+  with_items:
+    - cks
+  get_url:
+    url: 'http://10.0.1.100/{{ item }}'
+    dest: '/home/ubuntu/fhevm-keys/{{ item }}.bin'
+
+- name: Run kms container
+  community.docker.docker_container:
+    name: ethermint_kms
+    image: "{{ testnet_blockchain_kms_docker_image }}"
+    network_mode: host
+    log_driver: awslogs
+    log_options:
+      awslogs-region: '{{ aws_logs_region }}'
+      awslogs-stream: 'kms-50'
+      awslogs-group: '{{ aws_logs_group }}'
+      awslogs-create-group: "true"
+    volumes:
+      - /home/ubuntu/fhevm-keys:/usr/src/kms-server/temp

@@ -1,0 +1,194 @@
+name: Publish ethermint node
+
+on:
+  workflow_dispatch:
+    inputs:
+      zbc_build_image_tag:
+        description: 'Tag for zbc build docker image (defaul:latest)'
+        required: true
+        default: "latest"
+        type: string
+      ethermint_node_tag:
+        description: 'ethermint node tag (default: latest)'
+        default: "latest"
+        type: string
+        required: false
+      ref_to_ethermint:
+        description: 'Branch, tag or commit SHA1 to checkout Ethermint'
+        required: true
+        default: "main"
+        type: string
+
+env:
+  DOCKER_IMAGE: ghcr.io/zama-ai/ethermint-node
+
+defaults:
+  run:
+    working-directory: ./ethermint
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ethermint
+          ref: ${{ inputs.ref_to_ethermint }}
+
+      - name: Free disk space
+        run: |
+          sudo docker rmi $(docker image ls -aq) >/dev/null 2>&1 || true
+
+      - name: Use tag from workflow disptach (if workflow dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: echo "ethermint_TAG=${{ inputs.ethermint_node_tag }}" >> $GITHUB_ENV
+
+      - name: Use tag from tag push (if tag push)
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: echo "ethermint_TAG=$GITHUB_REF_NAME" >> $GITHUB_ENV
+
+      - name: Get version for all needed repositories
+        run: |
+          echo "FHEVM_GO_VERSION=$(./scripts/get_module_version.sh go.mod zama.ai/fhevm-go)" >> $GITHUB_ENV
+          echo "FHEVM_SOLIDITY_VERSION=$(./scripts/get_version_from_makefile.sh FHEVM_SOLIDITY_VERSION)" >> $GITHUB_ENV
+          echo "GO_ETHEREUM_VERSION=$(./scripts/get_module_version.sh go.mod zama.ai/zbc-go-ethereum)" >> $GITHUB_ENV
+          echo "KMS_VALIDATOR_TAG=$(./scripts/get_docker_compose_tag.sh docker-compose/docker-compose.local.yml kms-blockchain-asc-dev)" >> $GITHUB_ENV
+          echo "GATEWAY_TAG=$(./scripts/get_docker_compose_tag.sh docker-compose/docker-compose.local.yml kms-blockchain-gateway-dev)" >> $GITHUB_ENV
+          echo "KMS_DEV_TAG=$(./scripts/get_docker_compose_tag.sh docker-compose/docker-compose.local.yml kms-service-dev)" >> $GITHUB_ENV
+          echo "KMS_DEV_KEY_GEN_TAG=$(./scripts/get_version_from_makefile.sh KMS_DEV_VERSION)" >> $GITHUB_ENV
+
+
+      - name: Checkout go-ethereum
+        uses: actions/checkout@v3
+        with:
+          repository: zama-ai/zbc-go-ethereum
+          token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+          path: ./ethermint/work_dir/zbc-go-ethereum
+          ref: ${{ env.GO_ETHEREUM_VERSION }}
+
+      - name: Checkout fhevm-go
+        uses: actions/checkout@v3
+        with:
+          repository: zama-ai/fhevm-go
+          token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+          path: ./ethermint/work_dir/fhevm-go
+          ref: ${{ env.FHEVM_GO_VERSION }}
+          submodules: recursive
+
+      - name: Get get the closest tfhe-rs tag from the past  in fhevm-go
+        working-directory: ./ethermint/work_dir/fhevm-go/tfhe-rs/tfhe
+        run: |
+          LATEST_TAG=$(grep '^version' Cargo.toml | cut -d '"' -f 2)
+          echo "FHEVM_GO_TFHE_VERSION=$LATEST_TAG" >> $GITHUB_ENV
+      
+      - name: Set DESCRIPTION_IMAGE
+        run: |
+         echo "DESCRIPTION_IMAGE=fhevm-go-src=$FHEVM_GO_VERSION|fhevm-go.tfhe-rs-src=$FHEVM_GO_TFHE_VERSION|geth-src=$GO_ETHEREUM_VERSION|fhevm-e2e-src=$FHEVM_SOLIDITY_VERSION|kms-dev-e2e-docker=$KMS_DEV_TAG|kms-validator-e2e-docker=$KMS_VALIDATOR_TAG|gateway-e2e-docker=$GATEWAY_TAG">> $GITHUB_ENV
+
+
+      - name: Echo versions parsed from Makefile and go.mod
+        run: |
+          echo "FHEVM_SOLIDITY_VERSION: $FHEVM_SOLIDITY_VERSION"
+          echo "GO_ETHEREUM_VERSION: $GO_ETHEREUM_VERSION"
+          echo "FHEVM_GO_VERSION: $FHEVM_GO_VERSION"
+          echo "KMS_VALIDATOR_TAG: $KMS_VALIDATOR_TAG"
+          echo "GATEWAY_TAG: $GATEWAY_TAG"
+          echo "KMS_DEV_TAG: $KMS_DEV_TAG"
+          echo "KMS_DEV_KEY_GEN_TAG: $KMS_DEV_KEY_GEN_TAG"
+          echo "DESCRIPTION_IMAGE: $DESCRIPTION_IMAGE"
+
+
+      - name: Check OS
+        run: |
+          lscpu
+          uname -r
+          lsb_release -a
+
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+
+      - name: Check zbc build image docker tag
+        run: |
+          echo ${{ inputs.zbc_build_image_tag }}
+
+      
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5.5.1
+        with:
+          annotations: |
+            org.opencontainers.image.description=${{ env.DESCRIPTION_IMAGE }}
+          labels: |
+            zama.fhevm.node.version=${{ env.ethermint_TAG }}
+            zama.fhevm.node.description="fhEVM node image"
+            zama.fhevm.node.build.src.fhevm-go.version=${{ env.FHEVM_GO_VERSION }}
+            zama.fhevm.node.build.src.fhevm-go.tfhe-rs.version=${{ env.FHEVM_GO_TFHE_VERSION }}
+            zama.fhevm.node.build.src.zbc-go-ethereum=${{ env.GO_ETHEREUM_VERSION }}
+            zama.fhevm.node.build.docker.zbc-build-image=${{ inputs.zbc_build_image_tag }}
+            zama.fhevm.node.e2e.docker.kms-dev=${{ env.KMS_DEV_TAG }}
+            zama.fhevm.node.e2e.docker.kms-dev-key-gen=${{ env.KMS_DEV_KEY_GEN_TAG }}
+            zama.fhevm.node.e2e.docker.kms-validator=${{ env.KMS_VALIDATOR_TAG }}
+            zama.fhevm.node.e2e.docker.gateway=${{ env.GATEWAY_TAG }}
+            zama.fhevm.node.e2e.src.fhevm=${{ env.FHEVM_SOLIDITY_VERSION }}
+          images: ${{ env.DOCKER_IMAGE }}:${{ env.ethermint_TAG }}
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index
+
+      - name: Prepare docker build 
+        working-directory: ./ethermint
+        run: |
+          make prepare-docker-publish
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+          ls ${{ github.workspace }}/ethermint/work_dir
+          tree -L 2 ${{ github.workspace }}/ethermint/work_dir
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          build-args: |
+            ZBC_VERSION=${{ inputs.zbc_build_image_tag }}
+          context: ./ethermint
+          file: ./ethermint/docker/Dockerfile.ethermint-node.local
+          push: true
+          pull: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ env.DOCKER_IMAGE }}:${{ env.ethermint_TAG }},${{ env.DOCKER_IMAGE }}:latest
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+
+
+      - name: Check docker images
+        working-directory: ./ethermint
+        run: |
+          docker images
+
+      # - name: Start build of dev image
+      #   shell: bash
+      #   env:
+      #     SECRET_TOKEN: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+      #   run: |
+      #     curl -L -X POST \
+      #     -H "Accept: application/vnd.github+json" \
+      #     -H "Authorization: Bearer $SECRET_TOKEN" \
+      #     -H "X-GitHub-Api-Version: 2022-11-28" \
+      #     https://api.github.com/repos/zama-ai/ethermint/actions/workflows/publish_developer_image.yml/dispatches \
+      #     -d '{"inputs":{"ethermint_node_tag":"${{ env.ethermint_TAG }}"}}'

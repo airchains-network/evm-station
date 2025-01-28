@@ -1,0 +1,63 @@
+
+- name: Clone fhevm repo
+  git:
+    repo: 'https://github.com/zama-ai/fhevm.git'
+    dest: '{{ stress_test_dir }}'
+    version: '{{ fhevm_version }}'
+    update: no
+
+- name: Point to our testnet
+  lineinfile:
+    path: '{{ stress_test_dir }}/hardhat.config.ts'
+    search_string: "jsonRpcUrl = 'https://devnet.zama.ai';"
+    line: "      jsonRpcUrl = 'http://{{ groups['rpc_archival'][0] }}:8545';"
+
+- name: Lower compiler runs
+  lineinfile:
+    path: '{{ stress_test_dir }}/hardhat.config.ts'
+    search_string: "runs: 800,"
+    line: "        runs: 50,"
+
+- name: Copy default secrets file
+  copy:
+    dest: '{{ stress_test_dir }}/.env'
+    content: |
+      MNEMONIC='{{ mnemonic }}'
+
+- name: Create stress test shell script
+  copy:
+    dest: '{{ stress_test_dir }}/run-tests'
+    mode: 0755
+    content: |
+      #!/bin/sh
+
+      while true
+      do
+        npx hardhat test --network zama --grep 'should transfer tokens between two users'
+      done
+
+- name: Install package dependencies for stress test
+  community.general.npm:
+    path: '{{ stress_test_dir }}'
+
+- name: Create stress test shell script
+  become: yes
+  copy:
+    dest: '/etc/systemd/system/stress-tests-{{ stress_test_index }}.service'
+    content: |
+      [Unit]
+      Description=Fhevm stress tests {{ stress_test_index }}
+
+      [Service]
+      User=ubuntu
+      Group=ubuntu
+      Type=simple
+      ExecStart={{ stress_test_dir }}/run-tests
+      WorkingDirectory={{ stress_test_dir }}
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: 'start stress test {{ stress_test_index }}'
+  become: yes
+  systemd: state=started enabled=yes name='stress-tests-{{ stress_test_index }}.service' daemon_reload=yes

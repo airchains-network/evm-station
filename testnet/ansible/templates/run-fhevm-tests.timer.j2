@@ -1,0 +1,9 @@
+[Unit]
+Description=Runs fhe tests every hour
+After=network-online.target
+
+[Timer]
+OnCalendar=hourly
+
+[Install]
+WantedBy=timers.target

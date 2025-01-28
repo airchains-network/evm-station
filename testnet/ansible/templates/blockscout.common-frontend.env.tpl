@@ -1,0 +1,17 @@
+NEXT_PUBLIC_API_HOST={{ explorer_dns_name }}
+NEXT_PUBLIC_API_PROTOCOL=https
+NEXT_PUBLIC_STATS_API_HOST=https://{{ explorer_dns_name }}
+NEXT_PUBLIC_NETWORK_NAME={{ chain_name }}
+NEXT_PUBLIC_NETWORK_SHORT_NAME={{ chain_name }}
+NEXT_PUBLIC_NETWORK_ID=5
+NEXT_PUBLIC_NETWORK_CURRENCY_NAME={{ currency_name }}
+NEXT_PUBLIC_NETWORK_CURRENCY_SYMBOL={{ currency_symbol }}
+NEXT_PUBLIC_NETWORK_CURRENCY_DECIMALS=18
+NEXT_PUBLIC_API_BASE_PATH=/
+NEXT_PUBLIC_APP_HOST={{ explorer_dns_name }}
+NEXT_PUBLIC_APP_PROTOCOL=https
+NEXT_PUBLIC_HOMEPAGE_CHARTS=['daily_txs']
+NEXT_PUBLIC_VISUALIZE_API_HOST=https://{{ explorer_dns_name }}
+NEXT_PUBLIC_IS_TESTNET=true
+NEXT_PUBLIC_API_WEBSOCKET_PROTOCOL=wss
+NEXT_PUBLIC_API_SPEC_URL=https://raw.githubusercontent.com/blockscout/blockscout-api-v2-swagger/main/swagger.yaml

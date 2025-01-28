@@ -1,0 +1,48 @@
+name: Deploy Contract
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  cleanup-runs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: rokroskar/workflow-run-cleanup-action@master
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main'"
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: zama-ai/zbc-go-ethereum
+          token: ${{ secrets.CONCRETE_ACTIONS_TOKEN }}
+          path: zbc-go-ethereum
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: zbc-ethermint
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '12.x'
+      - name: Install dependencies
+        working-directory: zbc-ethermint
+        run: npm install
+      - uses: technote-space/get-diff-action@v6.1.2
+        id: git_diff
+        with:
+          PATTERNS: |
+            **/**.sol
+            **/**.go
+            go.mod
+            go.sum
+      - name: Test contract
+        working-directory: zbc-ethermint
+        run: |
+          sudo make contract-tools
+          sudo make test-contract
+        if: env.GIT_DIFF

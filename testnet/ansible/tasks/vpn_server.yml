@@ -1,0 +1,14 @@
+- name: Disable interactive prompts when installing nginx
+  lineinfile:
+    path: /etc/needrestart/needrestart.conf
+    search_string: "nrconf{restart} = 'i'"
+    line: "$nrconf{restart} = 'a';"
+
+- name: Update apt cache
+  changed_when: false
+  ansible.builtin.apt:
+    update_cache: yes
+
+- include_tasks: nat_instance.yml
+- include_tasks: wireguard.yml
+- include_tasks: nginx_key_server.yml

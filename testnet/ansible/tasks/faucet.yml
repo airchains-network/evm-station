@@ -1,0 +1,19 @@
+- name: Load faucet private key
+  shell: |
+    echo '{{ lookup('ansible.builtin.env', 'MNEMONIC') }}' | \
+      docker exec -i ethermint_validator \
+        ethermintd keys add orchestrator \
+        --no-backup --chain-id '{{ testnet_chain_id }}' \
+        --keyring-backend test --recover &>/dev/null || true
+
+- name: Fund faucet accounts
+  with_items: '{{ faucet_test_accounts }}'
+  shell: |
+    docker exec -i ethermint_validator python3 /root/.ethermintd/faucet.py {{ item }}
+    sleep 10
+
+- name: Fund stress test faucet accounts
+  with_items: '{{ stress_test_accounts | map(attribute="addresses") | flatten }}'
+  shell: |
+    docker exec -i ethermint_validator python3 /root/.ethermintd/faucet.py {{ item }}
+    sleep 10

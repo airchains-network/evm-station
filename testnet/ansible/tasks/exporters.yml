@@ -1,0 +1,9 @@
+- name: Install node exporter
+  include_role:
+    name: prometheus.prometheus.node_exporter
+
+- name: Install cadvisor
+  include_role:
+    name: prometheus.prometheus.cadvisor
+  vars:
+    cadvisor_port: '9200'

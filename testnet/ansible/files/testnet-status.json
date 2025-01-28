@@ -1,0 +1,977 @@
+{
+  "meta": {
+    "type": "db",
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true,
+    "canStar": true,
+    "canDelete": true,
+    "slug": "devnet-status",
+    "url": "/d/_Yj7Asqnz/devnet-status",
+    "expires": "0001-01-01T00:00:00Z",
+    "created": "2024-03-08T02:03:51Z",
+    "updated": "2024-03-14T01:14:04Z",
+    "updatedBy": "admin",
+    "createdBy": "admin",
+    "version": 6,
+    "hasAcl": false,
+    "isFolder": false,
+    "folderId": 0,
+    "folderUid": "",
+    "folderTitle": "General",
+    "folderUrl": "",
+    "provisioned": false,
+    "provisionedExternalId": "",
+    "annotationsPermissions": {
+      "dashboard": {
+        "canAdd": true,
+        "canEdit": true,
+        "canDelete": true
+      },
+      "organization": {
+        "canAdd": true,
+        "canEdit": true,
+        "canDelete": true
+      }
+    }
+  },
+  "dashboard": {
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+      ]
+    },
+    "description": "Devnet status",
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "gnetId": 18328,
+    "graphTooltip": 0,
+    "id": 4,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 7,
+        "panels": [],
+        "title": "Blockchain progress",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "inspect": false
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 12,
+          "w": 12,
+          "x": 0,
+          "y": 1
+        },
+        "id": 9,
+        "options": {
+          "cellHeight": "sm",
+          "footer": {
+            "countRows": false,
+            "enablePagination": false,
+            "fields": [],
+            "reducer": [
+              "sum"
+            ],
+            "show": false
+          },
+          "showHeader": true,
+          "sortBy": [
+            {
+              "desc": false,
+              "displayName": "Value"
+            }
+          ]
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "cometbft_consensus_height",
+            "format": "table",
+            "instant": true,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Block height",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {
+                "names": [
+                  "instance",
+                  "Value",
+                  "job",
+                  "Time"
+                ]
+              }
+            }
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "area"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 0.05
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 12,
+          "w": 12,
+          "x": 12,
+          "y": 1
+        },
+        "id": 10,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "rate(cometbft_consensus_height[5m])",
+            "format": "time_series",
+            "instant": false,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "{{ instance }}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Block rate",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {
+                "names": [
+                  "instance",
+                  "Value",
+                  "job",
+                  "Time"
+                ]
+              }
+            }
+          }
+        ],
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "dark-red",
+                  "value": null
+                },
+                {
+                  "color": "dark-red",
+                  "value": 0.05
+                },
+                {
+                  "color": "dark-green",
+                  "value": 0.1
+                }
+              ]
+            },
+            "unit": "txs"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 0,
+          "y": 13
+        },
+        "id": 8,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "max(cometbft_consensus_total_txs{instance=\"10.0.0.10:26660\"})",
+            "format": "time_series",
+            "instant": false,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "{{ instance }}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Total transactions",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {}
+            }
+          }
+        ],
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "dark-red",
+                  "value": null
+                },
+                {
+                  "color": "dark-red",
+                  "value": 0.05
+                },
+                {
+                  "color": "dark-green",
+                  "value": 0.1
+                }
+              ]
+            },
+            "unit": "decbytes"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 6,
+          "y": 13
+        },
+        "id": 11,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "max(node_filesystem_size_bytes{mountpoint='/', instance=\"10.0.0.10:9100\"}\n  - node_filesystem_avail_bytes{mountpoint='/', instance=\"10.0.0.10:9100\"})\n/ max(cometbft_consensus_total_txs{instance=\"10.0.0.10:26660\"})",
+            "format": "time_series",
+            "instant": false,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "{{ __address__ }}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Average disk space per transaction",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {}
+            }
+          }
+        ],
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "dark-red",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "decbytes"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 13
+        },
+        "id": 12,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "max(node_filesystem_size_bytes{mountpoint='/', instance=\"10.0.0.10:9100\"}\n  - node_filesystem_avail_bytes{mountpoint='/', instance=\"10.0.0.10:9100\"})\n/ max(cometbft_consensus_total_txs{instance=\"10.0.0.10:26660\"})",
+            "format": "time_series",
+            "instant": false,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "10.0.0.10:26660",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Disk space per transaction",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {}
+            }
+          }
+        ],
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 21
+        },
+        "id": 6,
+        "panels": [],
+        "title": "Disk space",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd"
+            },
+            "mappings": [],
+            "max": 100,
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 10,
+          "w": 12,
+          "x": 0,
+          "y": 22
+        },
+        "id": 2,
+        "options": {
+          "displayMode": "lcd",
+          "maxVizHeight": 300,
+          "minVizHeight": 10,
+          "minVizWidth": 0,
+          "namePlacement": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "text": {},
+          "valueMode": "color"
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "topk(40, (100 - ((node_filesystem_avail_bytes{mountpoint='/'} * 100) / node_filesystem_size_bytes{mountpoint='/'}) ) )",
+            "format": "time_series",
+            "instant": true,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "{{desc}} {{instance}} {{volume}} {{mountpoint}}",
+            "refId": "A"
+          }
+        ],
+        "title": "Disk space usage %",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {}
+            }
+          }
+        ],
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-RdYlGr"
+            },
+            "mappings": [],
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "d"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 10,
+          "w": 12,
+          "x": 12,
+          "y": 22
+        },
+        "id": 5,
+        "options": {
+          "displayMode": "lcd",
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "valueMode": "color"
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "(bottomk(\n    100,\n    node_filesystem_avail_bytes{mountpoint='/'} / (\n        (node_filesystem_size_bytes{mountpoint='/'} - node_filesystem_avail_bytes{mountpoint='/'})\n        - (node_filesystem_size_bytes{mountpoint='/'} offset 1d - node_filesystem_avail_bytes{mountpoint='/'} offset 1d)\n    )\n) > 0) < 365",
+            "format": "time_series",
+            "instant": true,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "{{desc}} {{instance}} {{volume}} {{mountpoint}}",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Days until disk is full",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {}
+            }
+          }
+        ],
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "bytes"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 10,
+          "w": 12,
+          "x": 0,
+          "y": 32
+        },
+        "id": 4,
+        "options": {
+          "displayMode": "lcd",
+          "maxVizHeight": 300,
+          "minVizHeight": 10,
+          "minVizWidth": 0,
+          "namePlacement": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "text": {},
+          "valueMode": "color"
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "topk(100, node_filesystem_size_bytes{mountpoint='/'} - node_filesystem_avail_bytes{mountpoint='/'})",
+            "format": "time_series",
+            "instant": true,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "{{desc}} {{instance}} {{volume}} {{mountpoint}}",
+            "refId": "A"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "expr": "",
+            "hide": false,
+            "instant": false,
+            "legendFormat": "__auto",
+            "range": true,
+            "refId": "B"
+          }
+        ],
+        "title": "Disk used bytes",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {}
+            }
+          }
+        ],
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "bytes"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 10,
+          "w": 12,
+          "x": 12,
+          "y": 32
+        },
+        "id": 3,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "10.2.4",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "PBFA97CFB590B2093"
+            },
+            "editorMode": "code",
+            "exemplar": true,
+            "expr": "(node_filesystem_size_bytes{mountpoint='/'} - node_filesystem_avail_bytes{mountpoint='/'})\n- (node_filesystem_size_bytes{mountpoint='/'} offset 1d - node_filesystem_avail_bytes{mountpoint='/'} offset 1d)",
+            "format": "time_series",
+            "instant": false,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "{{desc}} {{instance}} {{volume}} {{mountpoint}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Disk space growth per day",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {}
+            }
+          }
+        ],
+        "type": "timeseries"
+      }
+    ],
+    "refresh": "1m",
+    "revision": 1,
+    "schemaVersion": 39,
+    "tags": [
+      "prometheus"
+    ],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Devnet Status",
+    "uid": "_Yj7Asqnz",
+    "version": 6,
+    "weekStart": ""
+  }
+}
